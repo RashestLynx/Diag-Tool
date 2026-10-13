@@ -28,7 +28,13 @@ Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 - **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-android.apk
 - **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-windows.zip
 - **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-macos.zip
+- **iPhone (unsigned .ipa, sideload):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-ios-unsigned.ipa
 - **All releases:** https://github.com/RashestLynx/Diag-Tool/releases
+
+> The iPhone `.ipa` is **unsigned**. Install it with a sideloading tool -
+> [Sideloadly](https://sideloadly.io) or [AltStore](https://altstore.io) - which
+> signs it with your own Apple ID on your computer. (Free Apple IDs work; the app
+> then needs re-signing every 7 days, which those tools can automate.)
 
 > The desktop/Android builds are unsigned, so your OS will show an
 > "unknown developer" prompt the first time. iPhone needs an Apple-signed

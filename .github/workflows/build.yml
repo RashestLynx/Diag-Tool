@@ -130,7 +130,7 @@ jobs:
           path: app/build/macos/Build/Products/Release/*.app
 
   ios:
-    name: iOS build (unsigned)
+    name: iOS build (unsigned .ipa)
     needs: [analyze-test]
     runs-on: macos-latest
     steps:
@@ -142,12 +142,26 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build ios --release --no-codesign
+      # Package the unsigned app into an .ipa. It is NOT Apple-signed, so it
+      # installs only via a sideloading tool (Sideloadly, AltStore) that signs
+      # it with your own Apple ID at install time.
+      - name: Package unsigned .ipa
+        run: |
+          cd app/build/ios/iphoneos
+          mkdir -p Payload
+          cp -R Runner.app Payload/Runner.app
+          zip -qr "$GITHUB_WORKSPACE/diag-tool-ios-unsigned.ipa" Payload
+          ls -lh "$GITHUB_WORKSPACE/diag-tool-ios-unsigned.ipa"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-tool-ios-unsigned
+          path: diag-tool-ios-unsigned.ipa
 
   # Publish the built apps to a rolling "latest" GitHub Release so the README
   # can link directly to downloadable files. Push events only (not PRs/forks).
   release:
     name: Publish downloads
-    needs: [android, windows, macos]
+    needs: [android, windows, macos, ios]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -163,6 +177,7 @@ jobs:
         run: |
           mkdir -p release
           cp artifacts/diag-tool-android-apk/app-release.apk release/diag-tool-android.apk
+          cp artifacts/diag-tool-ios-unsigned/diag-tool-ios-unsigned.ipa release/diag-tool-ios-unsigned.ipa
           (cd artifacts/diag-tool-windows && zip -r "$GITHUB_WORKSPACE/release/diag-tool-windows.zip" .)
           (cd artifacts/diag-tool-macos && zip -r "$GITHUB_WORKSPACE/release/diag-tool-macos.zip" .)
           ls -lh release
@@ -175,6 +190,7 @@ jobs:
           prerelease: ${{ inputs.release_tag == '' && github.ref_type != 'tag' }}
           body: >-
             Download the app for your platform below. Desktop/Android builds are
-            unsigned, so expect an "unknown developer" prompt. iOS needs an
-            Apple-signed build.
+            unsigned (expect an "unknown developer" prompt). The iOS .ipa is
+            unsigned too - install it with a sideloading tool (Sideloadly or
+            AltStore) that signs it with your own Apple ID.
           files: release/*
