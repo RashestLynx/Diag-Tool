@@ -87,7 +87,20 @@ jobs:
       #     keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
       #     keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
       #     EOF
-      - run: flutter build apk --release
+      # Retry to absorb the occasional corrupt NDK/SDK download on the runner.
+      - name: Build APK (with retry)
+        run: |
+          for attempt in 1 2 3; do
+            echo "::group::flutter build apk (attempt $attempt)"
+            if flutter build apk --release; then
+              echo "::endgroup::"; exit 0
+            fi
+            echo "::endgroup::"
+            echo "Attempt $attempt failed; cleaning and retrying…"
+            flutter clean || true
+            sleep 10
+          done
+          echo "APK build failed after 3 attempts"; exit 1
       - uses: actions/upload-artifact@v4
         with:
           name: diag-tool-android-apk
