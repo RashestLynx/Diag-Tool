@@ -27,15 +27,22 @@ Three tabs:
   - **Battery & touchpad (iOS/macOS only):** controller battery level/charge
     state, and a live DualSense touchpad finger view, via Apple's GameController
     framework. Hidden on platforms that don't provide them.
+- **Recovery** - the account-recovery guidance from `phone_info.py`, in the UI:
+  official first-party services (tappable links), step-by-step recovery
+  checklists, where backups live, how to copy data off an unlocked device, and
+  a builder for an ownership-proof sheet you can hand to Apple/Samsung support.
+  This recovers the account you own - it does not remove anyone's lock.
 - **Identify** - validate an IMEI (checksum + make/model TAC) or a serial
   number, with links to official lookup pages.
 
-The diagnosis advice lives in `assets/knowledge.json`, generated from the
-project's Python CLI so the app and the command line stay in sync:
+The diagnosis advice lives in `assets/knowledge.json`, and the account-recovery
+guidance in `assets/recovery.json` - both generated from the project's Python
+code (`diag_tool.py` and `phone_info.py`) so the app and the command line stay
+in sync:
 
 ```
 cd ..            # repo root
-python diag_tool.py export-json
+python diag_tool.py export-json   # writes both knowledge.json and recovery.json
 ```
 
 ## Running and building

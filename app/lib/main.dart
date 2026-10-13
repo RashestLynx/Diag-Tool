@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'controller/controller_screen.dart';
 import 'knowledge.dart';
+import 'recovery/recovery.dart';
+import 'recovery/recovery_screen.dart';
 import 'screens/diagnose_screen.dart';
 import 'screens/identify_screen.dart';
 import 'screens/scan_screen.dart';
@@ -34,15 +36,16 @@ class _Home extends StatefulWidget {
 }
 
 class _HomeState extends State<_Home> {
-  late final Future<Knowledge> _knowledge = Knowledge.load();
+  late final Future<(Knowledge, Recovery)> _data =
+      Future.wait([Knowledge.load(), Recovery.load()]).then((r) => (r[0] as Knowledge, r[1] as Recovery));
   int _tab = 0;
 
-  static const _titles = ['Scan', 'Diagnose', 'Controller', 'Identify'];
+  static const _titles = ['Scan', 'Diagnose', 'Controller', 'Recovery', 'Identify'];
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Knowledge>(
-      future: _knowledge,
+    return FutureBuilder<(Knowledge, Recovery)>(
+      future: _data,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -53,11 +56,12 @@ class _HomeState extends State<_Home> {
             body: Center(child: Text('Failed to load: ${snap.error}')),
           );
         }
-        final knowledge = snap.data!;
+        final (knowledge, recovery) = snap.data!;
         final screens = [
           ScanScreen(knowledge: knowledge),
           DiagnoseScreen(knowledge: knowledge),
           const ControllerScreen(),
+          RecoveryScreen(recovery: recovery),
           const IdentifyScreen(),
         ];
 
@@ -89,6 +93,10 @@ class _HomeState extends State<_Home> {
                         selectedIcon: Icon(Icons.sports_esports),
                         label: Text('Controller')),
                     NavigationRailDestination(
+                        icon: Icon(Icons.lock_reset_outlined),
+                        selectedIcon: Icon(Icons.lock_reset),
+                        label: Text('Recovery')),
+                    NavigationRailDestination(
                         icon: Icon(Icons.badge_outlined),
                         selectedIcon: Icon(Icons.badge),
                         label: Text('Identify')),
@@ -116,6 +124,10 @@ class _HomeState extends State<_Home> {
                         icon: Icon(Icons.sports_esports_outlined),
                         selectedIcon: Icon(Icons.sports_esports),
                         label: 'Controller'),
+                    NavigationDestination(
+                        icon: Icon(Icons.lock_reset_outlined),
+                        selectedIcon: Icon(Icons.lock_reset),
+                        label: 'Recovery'),
                     NavigationDestination(
                         icon: Icon(Icons.badge_outlined),
                         selectedIcon: Icon(Icons.badge),

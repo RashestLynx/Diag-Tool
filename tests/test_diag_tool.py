@@ -87,6 +87,15 @@ class AppKnowledgeTests(unittest.TestCase):
         self.assertEqual(on_disk, json.loads(json.dumps(diag_tool.knowledge_as_dict())),
                          "run `python diag_tool.py export-json` to refresh the app's copy")
 
+    def test_app_recovery_json_is_up_to_date(self):
+        import json
+        import phone_info
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "app", "assets", "recovery.json"), encoding="utf-8") as fh:
+            on_disk = json.load(fh)
+        self.assertEqual(on_disk, json.loads(json.dumps(phone_info.recovery_as_dict())),
+                         "run `python diag_tool.py export-json` to refresh the app's copy")
+
 
 if __name__ == "__main__":
     unittest.main()
