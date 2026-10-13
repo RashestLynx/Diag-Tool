@@ -124,3 +124,37 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build ios --release --no-codesign
+
+  # Publish the built apps to a rolling "latest" GitHub Release so the README
+  # can link directly to downloadable files. Push events only (not PRs/forks).
+  release:
+    name: Publish downloads
+    needs: [android, windows, macos]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Package release files
+        run: |
+          mkdir -p release
+          cp artifacts/diag-tool-android-apk/app-release.apk release/diag-tool-android.apk
+          (cd artifacts/diag-tool-windows && zip -r "$GITHUB_WORKSPACE/release/diag-tool-windows.zip" .)
+          (cd artifacts/diag-tool-macos && zip -r "$GITHUB_WORKSPACE/release/diag-tool-macos.zip" .)
+          ls -lh release
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          prerelease: true
+          body: >-
+            Automatically built from the latest commit. Download the app for
+            your platform below. Desktop/Android builds are unsigned, so expect
+            an "unknown developer" prompt. iOS needs an Apple-signed build.
+          files: release/*
