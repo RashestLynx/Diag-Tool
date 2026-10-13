@@ -12,6 +12,11 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Cut a versioned release with this tag (e.g. v1.0). Leave blank for a normal build."
+        required: false
+        default: ""
 
 env:
   FLUTTER_VERSION: "3.47.7"
@@ -131,7 +136,7 @@ jobs:
   release:
     name: Publish downloads
     needs: [android, windows, macos]
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -153,9 +158,9 @@ jobs:
       # rolling "latest" prerelease. Both get the same three download files.
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
-          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Latest build' }}
-          prerelease: ${{ github.ref_type != 'tag' }}
+          tag_name: ${{ inputs.release_tag != '' && inputs.release_tag || (github.ref_type == 'tag' && github.ref_name || 'latest') }}
+          name: ${{ inputs.release_tag != '' && inputs.release_tag || (github.ref_type == 'tag' && github.ref_name || 'Latest build') }}
+          prerelease: ${{ inputs.release_tag == '' && github.ref_type != 'tag' }}
           body: >-
             Download the app for your platform below. Desktop/Android builds are
             unsigned, so expect an "unknown developer" prompt. iOS needs an
