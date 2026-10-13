@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'controller/controller_screen.dart';
 import 'knowledge.dart';
 import 'screens/diagnose_screen.dart';
 import 'screens/identify_screen.dart';
@@ -36,7 +37,7 @@ class _HomeState extends State<_Home> {
   late final Future<Knowledge> _knowledge = Knowledge.load();
   int _tab = 0;
 
-  static const _titles = ['Scan', 'Diagnose', 'Identify'];
+  static const _titles = ['Scan', 'Diagnose', 'Controller', 'Identify'];
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +57,7 @@ class _HomeState extends State<_Home> {
         final screens = [
           ScanScreen(knowledge: knowledge),
           DiagnoseScreen(knowledge: knowledge),
+          const ControllerScreen(),
           const IdentifyScreen(),
         ];
 
@@ -83,6 +85,10 @@ class _HomeState extends State<_Home> {
                         selectedIcon: Icon(Icons.healing),
                         label: Text('Diagnose')),
                     NavigationRailDestination(
+                        icon: Icon(Icons.sports_esports_outlined),
+                        selectedIcon: Icon(Icons.sports_esports),
+                        label: Text('Controller')),
+                    NavigationRailDestination(
                         icon: Icon(Icons.badge_outlined),
                         selectedIcon: Icon(Icons.badge),
                         label: Text('Identify')),
@@ -106,6 +112,10 @@ class _HomeState extends State<_Home> {
                         icon: Icon(Icons.healing_outlined),
                         selectedIcon: Icon(Icons.healing),
                         label: 'Diagnose'),
+                    NavigationDestination(
+                        icon: Icon(Icons.sports_esports_outlined),
+                        selectedIcon: Icon(Icons.sports_esports),
+                        label: 'Controller'),
                     NavigationDestination(
                         icon: Icon(Icons.badge_outlined),
                         selectedIcon: Icon(Icons.badge),

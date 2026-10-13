@@ -11,6 +11,11 @@ Three tabs:
 - **Diagnose** - describe a problem in plain words, or pick a device and tap a
   symptom. Shows likely causes, most likely first, each with step-by-step
   fixes. Safety issues (swollen battery, liquid damage) are flagged.
+- **Controller** - test a connected PS5 (DualSense) or Xbox controller live:
+  shows each analog stick on a pad, the trigger travel, and every button as you
+  press it. A drift test watches the sticks while you're not touching them and
+  reports stick drift with the dead zone a game would need to hide it. Button
+  and stick labels switch to PlayStation or Xbox names automatically.
 - **Identify** - validate an IMEI (checksum + make/model TAC) or a serial
   number, with links to official lookup pages.
 
@@ -54,6 +59,15 @@ Android SDK installed.
 
 iOS does not expose battery temperature or health to third-party apps, so the
 scan there covers storage, memory and charge level.
+
+## Controller testing
+
+Uses the `gamepads` plugin, which reads controllers on Android, iOS, macOS,
+Windows and Linux and normalizes PS5/Xbox inputs to one standard layout
+(sticks -1..1, triggers 0..1, buttons). Connect the controller by USB or
+Bluetooth first. The drift verdict is based on how far a stick wanders from
+centre while at rest: under 5% is healthy, 5-10% is slight wear, and over 10%
+is drift.
 
 ## Tests
 
