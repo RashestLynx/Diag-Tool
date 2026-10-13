@@ -11,11 +11,18 @@ Three tabs:
 - **Diagnose** - describe a problem in plain words, or pick a device and tap a
   symptom. Shows likely causes, most likely first, each with step-by-step
   fixes. Safety issues (swollen battery, liquid damage) are flagged.
-- **Controller** - test a connected PS5 (DualSense) or Xbox controller live:
-  shows each analog stick on a pad, the trigger travel, and every button as you
-  press it. A drift test watches the sticks while you're not touching them and
-  reports stick drift with the dead zone a game would need to hide it. Button
-  and stick labels switch to PlayStation or Xbox names automatically.
+- **Controller** - full test suite for a connected PS5 (DualSense) or Xbox
+  controller. Labels switch to PlayStation or Xbox names automatically.
+  - **Live view:** each analog stick on a pad, trigger travel bars, and every
+    button lighting up as you press it.
+  - **Stick drift test:** watches the sticks at rest and reports drift with the
+    dead zone a game would need to hide it.
+  - **Stick range test:** confirms each stick reaches the rim in every
+    direction (a worn stick can't).
+  - **Full input check:** a checklist that turns green once every button,
+    trigger and stick direction has responded - finds anything dead.
+  - **Vibration test:** buzzes the low motor, high motor or both.
+  - **Live polling rate:** shows how many updates/sec the controller sends.
 - **Identify** - validate an IMEI (checksum + make/model TAC) or a serial
   number, with links to official lookup pages.
 
@@ -67,7 +74,11 @@ Windows and Linux and normalizes PS5/Xbox inputs to one standard layout
 (sticks -1..1, triggers 0..1, buttons). Connect the controller by USB or
 Bluetooth first. The drift verdict is based on how far a stick wanders from
 centre while at rest: under 5% is healthy, 5-10% is slight wear, and over 10%
-is drift.
+is drift. The vibration test uses the plugin's rumble support (often only over
+USB, not Bluetooth).
+
+The plugin does not expose controller battery level or raw touchpad finger
+position, so those are not shown.
 
 ## Tests
 

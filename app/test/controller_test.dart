@@ -83,4 +83,62 @@ void main() {
       expect(appliedMagnitude(0.55, 0.0, 0.1), closeTo(0.5, 1e-9));
     });
   });
+
+  group('InputCoverage', () {
+    test('tracks buttons and reports what is missing', () {
+      final c = InputCoverage();
+      c.markButton('a');
+      c.markButton('b');
+      expect(c.missingButtons(['a', 'b', 'x']), ['x']);
+    });
+
+    test('stick full range needs all four directions to reach the rim', () {
+      final c = InputCoverage();
+      c.markStick(StickSide.left, 0.95, 0); // right
+      c.markStick(StickSide.left, -0.95, 0); // left
+      c.markStick(StickSide.left, 0, 0.95); // up
+      expect(c.stickFullRange(StickSide.left), isFalse);
+      expect(c.missingDirections(StickSide.left), ['down']);
+      c.markStick(StickSide.left, 0, -0.95); // down
+      expect(c.stickFullRange(StickSide.left), isTrue);
+      expect(c.missingDirections(StickSide.left), isEmpty);
+    });
+
+    test('a worn stick that never reaches the rim is flagged', () {
+      final c = InputCoverage();
+      for (final (x, y) in [(0.8, 0.0), (-0.8, 0.0), (0.0, 0.8), (0.0, -0.8)]) {
+        c.markStick(StickSide.right, x, y);
+      }
+      expect(c.stickFullRange(StickSide.right), isFalse);
+      expect(c.stickMaxMagnitude(StickSide.right), closeTo(0.8, 1e-9));
+    });
+
+    test('triggers must reach near full', () {
+      final c = InputCoverage();
+      c.markTrigger(StickSide.left, 0.5);
+      expect(c.triggerFull(StickSide.left), isFalse);
+      c.markTrigger(StickSide.left, 1.0);
+      expect(c.triggerFull(StickSide.left), isTrue);
+      expect(c.triggerMax(StickSide.left), 1.0);
+    });
+
+    test('isComplete only when everything has responded', () {
+      final c = InputCoverage();
+      const buttons = ['a', 'b'];
+      void fullSticks() {
+        for (final s in StickSide.values) {
+          c.markStick(s, 1, 0);
+          c.markStick(s, -1, 0);
+          c.markStick(s, 0, 1);
+          c.markStick(s, 0, -1);
+          c.markTrigger(s, 1);
+        }
+      }
+      fullSticks();
+      expect(c.isComplete(buttons), isFalse); // buttons not pressed yet
+      c.markButton('a');
+      c.markButton('b');
+      expect(c.isComplete(buttons), isTrue);
+    });
+  });
 }

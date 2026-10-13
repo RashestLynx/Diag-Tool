@@ -24,6 +24,15 @@ class _ControllerScreenState extends State<ControllerScreen> {
   String? _selectedId;
   bool _loading = true;
 
+  // Input-coverage checklist and live polling rate.
+  InputCoverage _coverage = InputCoverage();
+  final List<int> _recentEventMs = [];
+  int _pollHz = 0;
+
+  // Rumble
+  bool? _hasRumble;
+  bool _rumbling = false;
+
   // Drift test
   Timer? _testTimer;
   StickDriftRecorder? _leftRec;
@@ -47,6 +56,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
       _events = Gamepads.normalizedEvents.listen((e) {
         if (e.gamepadId != _selectedId) return;
         _state.update(e);
+        _recordCoverage(e);
+        _tickPolling(e.timestamp);
         if (mounted) setState(() {});
       });
       _connections = Gamepads.connectionEvents.listen((_) => _refresh());
@@ -95,6 +106,22 @@ class _ControllerScreenState extends State<ControllerScreen> {
     _leftRec = _rightRec = null;
     _leftResult = _rightResult = null;
     _testTicksLeft = 0;
+    _coverage = InputCoverage();
+    _recentEventMs.clear();
+    _pollHz = 0;
+    _hasRumble = null;
+    _probeRumble();
+  }
+
+  Future<void> _probeRumble() async {
+    final pad = _selectedPad;
+    if (pad == null) return;
+    try {
+      final has = await pad.hasRumble();
+      if (mounted && pad.id == _selectedId) setState(() => _hasRumble = has);
+    } catch (_) {
+      if (mounted) setState(() => _hasRumble = false);
+    }
   }
 
   void _startDriftTest() {
@@ -119,6 +146,57 @@ class _ControllerScreenState extends State<ControllerScreen> {
         setState(() {});
       }
     });
+  }
+
+  void _recordCoverage(NormalizedGamepadEvent e) {
+    if (e.button != null && e.value != 0) {
+      _coverage.markButton(e.button!.name);
+    } else if (e.axis != null) {
+      switch (e.axis!) {
+        case GamepadAxis.leftStickX:
+        case GamepadAxis.leftStickY:
+          _coverage.markStick(StickSide.left, _state.axisValue(GamepadAxis.leftStickX),
+              _state.axisValue(GamepadAxis.leftStickY));
+        case GamepadAxis.rightStickX:
+        case GamepadAxis.rightStickY:
+          _coverage.markStick(StickSide.right, _state.axisValue(GamepadAxis.rightStickX),
+              _state.axisValue(GamepadAxis.rightStickY));
+        case GamepadAxis.leftTrigger:
+          _coverage.markTrigger(StickSide.left, e.value);
+        case GamepadAxis.rightTrigger:
+          _coverage.markTrigger(StickSide.right, e.value);
+      }
+    }
+  }
+
+  void _tickPolling(int timestampMs) {
+    // timestamp is milliseconds since epoch; count events in the last second.
+    _recentEventMs.add(timestampMs);
+    _recentEventMs.removeWhere((t) => timestampMs - t > 1000);
+    _pollHz = _recentEventMs.length;
+  }
+
+  /// Buttons we expect this controller to have (for the coverage checklist).
+  List<String> get _expectedButtons => [
+        GamepadButton.a, GamepadButton.b, GamepadButton.x, GamepadButton.y,
+        GamepadButton.leftBumper, GamepadButton.rightBumper,
+        GamepadButton.dpadUp, GamepadButton.dpadDown, GamepadButton.dpadLeft, GamepadButton.dpadRight,
+        GamepadButton.back, GamepadButton.start, GamepadButton.home,
+        GamepadButton.leftStick, GamepadButton.rightStick,
+        if (_brand == ControllerBrand.playstation) GamepadButton.touchpad,
+      ].map((b) => b.name).toList();
+
+  Future<void> _rumble(double low, double high) async {
+    final pad = _selectedPad;
+    if (pad == null) return;
+    setState(() => _rumbling = true);
+    try {
+      await pad.rumble(lowFrequency: low, highFrequency: high, duration: const Duration(milliseconds: 600));
+      await Future<void>.delayed(const Duration(milliseconds: 650));
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _rumbling = false);
+    }
   }
 
   @override
@@ -183,9 +261,15 @@ class _ControllerScreenState extends State<ControllerScreen> {
           ],
         ),
         const SizedBox(height: 12),
+        _rangeCard(context),
+        const SizedBox(height: 12),
         _triggerCard(context),
         const SizedBox(height: 12),
         _buttonsCard(context, names),
+        const SizedBox(height: 12),
+        _coverageCard(context, names),
+        const SizedBox(height: 12),
+        _rumbleCard(context),
       ],
     );
   }
@@ -215,6 +299,10 @@ class _ControllerScreenState extends State<ControllerScreen> {
                       style: Theme.of(context).textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.bold, color: scheme.onSecondaryContainer),
                       overflow: TextOverflow.ellipsis),
+                  Text(
+                    _pollHz > 0 ? 'Connected · ~$_pollHz updates/sec' : 'Connected · move a stick to measure rate',
+                    style: TextStyle(color: scheme.onSecondaryContainer.withValues(alpha: 0.8), fontSize: 11),
+                  ),
                 ],
               ),
             ),
@@ -450,6 +538,203 @@ class _ControllerScreenState extends State<ControllerScreen> {
           style: TextStyle(
               color: pressed ? scheme.onPrimary : scheme.onSurfaceVariant,
               fontWeight: FontWeight.w600)),
+    );
+  }
+
+  Widget _rangeCard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Widget row(String label, StickSide side) {
+      final mag = _coverage.stickMaxMagnitude(side);
+      final full = _coverage.stickFullRange(side);
+      final missing = _coverage.missingDirections(side);
+      final reached = mag < 0.05;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(width: 90, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: mag.clamp(0.0, 1.0),
+                  minHeight: 12,
+                  color: full ? const Color(0xFF2E7D32) : scheme.primary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 92,
+              child: Text(
+                reached
+                    ? 'rotate it'
+                    : full
+                        ? 'full ✓'
+                        : 'to rim: ${missing.join(", ")}',
+                textAlign: TextAlign.right,
+                style: TextStyle(fontSize: 12, color: full ? const Color(0xFF2E7D32) : scheme.onSurfaceVariant),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Stick range', style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('Roll each stick around its full circle. A worn stick can’t reach the rim '
+                'in every direction.', style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 12),
+            row('Left stick', StickSide.left),
+            row('Right stick', StickSide.right),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _coverageCard(BuildContext context,
+      ({String label, String a, String b, String x, String y, String view}) names) {
+    final scheme = Theme.of(context).colorScheme;
+    final missingButtons = _coverage.missingButtons(_expectedButtons);
+    final total = _expectedButtons.length;
+    final pressed = total - missingButtons.length;
+    final complete = _coverage.isComplete(_expectedButtons);
+    final checks = <(String, bool)>[
+      ('All buttons ($pressed/$total)', missingButtons.isEmpty),
+      ('Left trigger full press', _coverage.triggerFull(StickSide.left)),
+      ('Right trigger full press', _coverage.triggerFull(StickSide.right)),
+      ('Left stick full range', _coverage.stickFullRange(StickSide.left)),
+      ('Right stick full range', _coverage.stickFullRange(StickSide.right)),
+    ];
+    return Card(
+      color: complete ? scheme.primaryContainer : null,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(complete ? Icons.verified : Icons.checklist, color: complete ? const Color(0xFF2E7D32) : null),
+              const SizedBox(width: 8),
+              Text('Full button & input check', style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+            ]),
+            const SizedBox(height: 4),
+            Text(complete
+                ? 'Every input responded - nothing dead on this controller.'
+                : 'Press every button, pull both triggers fully, and roll both sticks to the rim. '
+                    'Anything still unchecked may be dead.',
+                style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 12),
+            ...checks.map((c) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(children: [
+                    Icon(c.$2 ? Icons.check_circle : Icons.radio_button_unchecked,
+                        size: 18, color: c.$2 ? const Color(0xFF2E7D32) : scheme.outline),
+                    const SizedBox(width: 8),
+                    Text(c.$1),
+                  ]),
+                )),
+            if (missingButtons.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('Not pressed yet: ${missingButtons.map(_buttonLabel).join(", ")}',
+                  style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+            ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => setState(() => _coverage = InputCoverage()),
+                icon: const Icon(Icons.restart_alt, size: 18),
+                label: const Text('Reset'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Human label for a GamepadButton.name, matched to the current brand.
+  String _buttonLabel(String name) {
+    final ps = _brand == ControllerBrand.playstation;
+    return switch (name) {
+      'a' => ps ? 'Cross' : 'A',
+      'b' => ps ? 'Circle' : 'B',
+      'x' => ps ? 'Square' : 'X',
+      'y' => ps ? 'Triangle' : 'Y',
+      'leftBumper' => ps ? 'L1' : 'LB',
+      'rightBumper' => ps ? 'R1' : 'RB',
+      'back' => ps ? 'Create' : 'View',
+      'start' => 'Start',
+      'home' => ps ? 'PS' : 'Guide',
+      'leftStick' => 'L3',
+      'rightStick' => 'R3',
+      'dpadUp' => 'D-pad Up',
+      'dpadDown' => 'D-pad Down',
+      'dpadLeft' => 'D-pad Left',
+      'dpadRight' => 'D-pad Right',
+      'touchpad' => 'Touchpad',
+      _ => name,
+    };
+  }
+
+  Widget _rumbleCard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Widget body;
+    if (_hasRumble == null) {
+      body = Row(children: const [
+        SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+        SizedBox(width: 10),
+        Text('Checking for vibration motors…'),
+      ]);
+    } else if (_hasRumble == false) {
+      body = Text('This controller reports no vibration support on this platform. '
+          '(Over Bluetooth, rumble is often unavailable - try a USB cable.)',
+          style: Theme.of(context).textTheme.bodySmall);
+    } else {
+      body = Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          FilledButton.tonalIcon(
+              onPressed: _rumbling ? null : () => _rumble(1.0, 0.0),
+              icon: const Icon(Icons.vibration), label: const Text('Low motor')),
+          FilledButton.tonalIcon(
+              onPressed: _rumbling ? null : () => _rumble(0.0, 1.0),
+              icon: const Icon(Icons.vibration), label: const Text('High motor')),
+          FilledButton.icon(
+              onPressed: _rumbling ? null : () => _rumble(1.0, 1.0),
+              icon: const Icon(Icons.vibration), label: const Text('Both')),
+        ],
+      );
+    }
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Vibration test', style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('Each motor should buzz for about half a second. A motor that stays '
+                'silent may be disconnected.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 12),
+            body,
+          ],
+        ),
+      ),
     );
   }
 
