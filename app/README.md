@@ -24,6 +24,9 @@ Three tabs:
   - **Vibration test:** buzzes the low motor, high motor or both.
   - **Report timing:** reports/sec, average gap, jitter and worst gap for the
     controller->app link (not full press-to-screen lag, which needs a camera).
+  - **Battery & touchpad (iOS/macOS only):** controller battery level/charge
+    state, and a live DualSense touchpad finger view, via Apple's GameController
+    framework. Hidden on platforms that don't provide them.
 - **Identify** - validate an IMEI (checksum + make/model TAC) or a serial
   number, with links to official lookup pages.
 
@@ -78,8 +81,16 @@ centre while at rest: under 5% is healthy, 5-10% is slight wear, and over 10%
 is drift. The vibration test uses the plugin's rumble support (often only over
 USB, not Bluetooth).
 
-The plugin does not expose controller battery level or raw touchpad finger
-position, so those are not shown.
+Controller battery level and DualSense touchpad position come from a native
+platform channel using Apple's GameController framework, so they appear on
+**iOS and macOS only** (`ios/Runner/ControllerInfoReader.swift` and the macOS
+copy). Android doesn't expose a gamepad's battery or touchpad to apps, and on
+Windows it would require raw HID parsing; on those platforms the card is hidden.
+The Dart side (`lib/controller/controller_info.dart`) returns null when no
+native handler is present, so nothing breaks.
+
+> Note: the native Swift must be compiled on a Mac (Xcode) to take effect; it
+> can't be built in a Linux CI runner or this project's Linux dev container.
 
 ## Tests
 

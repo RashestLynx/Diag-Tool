@@ -46,6 +46,68 @@ class StickPad extends StatelessWidget {
   }
 }
 
+/// A landscape pad showing the DualSense touchpad finger position.
+class TouchpadView extends StatelessWidget {
+  const TouchpadView({super.key, required this.x, required this.y, required this.touching});
+  final double x; // -1..1
+  final double y; // -1..1 (up positive)
+  final bool touching;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: CustomPaint(
+        painter: _TouchpadPainter(
+          x: x,
+          y: y,
+          touching: touching,
+          dot: scheme.primary,
+          grid: scheme.outlineVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _TouchpadPainter extends CustomPainter {
+  _TouchpadPainter({
+    required this.x,
+    required this.y,
+    required this.touching,
+    required this.dot,
+    required this.grid,
+  });
+  final double x, y;
+  final bool touching;
+  final Color dot, grid;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cross = Paint()
+      ..color = grid.withValues(alpha: 0.5)
+      ..strokeWidth = 1;
+    canvas.drawLine(Offset(size.width / 2, 0), Offset(size.width / 2, size.height), cross);
+    canvas.drawLine(Offset(0, size.height / 2), Offset(size.width, size.height / 2), cross);
+    if (touching) {
+      final pos = Offset(
+        (x.clamp(-1.0, 1.0) + 1) / 2 * size.width,
+        (1 - (y.clamp(-1.0, 1.0) + 1) / 2) * size.height,
+      );
+      canvas.drawCircle(pos, 10, Paint()..color = dot);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TouchpadPainter old) =>
+      old.x != x || old.y != y || old.touching != touching;
+}
+
 class _StickPainter extends CustomPainter {
   _StickPainter({
     required this.x,

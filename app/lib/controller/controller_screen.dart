@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 
+import 'controller_info.dart';
 import 'stick_analysis.dart';
 import 'stick_pad.dart';
 
@@ -31,6 +32,10 @@ class _ControllerScreenState extends State<ControllerScreen> {
   // Rumble
   bool? _hasRumble;
   bool _rumbling = false;
+
+  // Native battery + touchpad (iOS/macOS only).
+  Timer? _infoTimer;
+  ControllerInfo? _info;
 
   // Drift test
   Timer? _testTimer;
@@ -63,6 +68,11 @@ class _ControllerScreenState extends State<ControllerScreen> {
     } catch (_) {
       // Stream not available on this platform/build.
     }
+    // Poll native battery/touchpad a few times a second (no-op off iOS/macOS).
+    _infoTimer = Timer.periodic(const Duration(milliseconds: 250), (_) async {
+      final info = await ControllerInfo.read();
+      if (mounted) setState(() => _info = info);
+    });
     await _refresh();
   }
 
@@ -196,6 +206,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
     _events?.cancel();
     _connections?.cancel();
     _testTimer?.cancel();
+    _infoTimer?.cancel();
     for (final p in _pads) {
       p.dispose();
     }
@@ -241,6 +252,10 @@ class _ControllerScreenState extends State<ControllerScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         _padPicker(context, names),
+        if (_info != null && (_info!.hasBattery || _info!.hasTouchpad)) ...[
+          const SizedBox(height: 12),
+          _nativeInfoCard(context),
+        ],
         const SizedBox(height: 12),
         _driftTestCard(context, testing),
         const SizedBox(height: 12),
@@ -682,6 +697,100 @@ class _ControllerScreenState extends State<ControllerScreen> {
       'touchpad' => 'Touchpad',
       _ => name,
     };
+  }
+
+  Widget _nativeInfoCard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final info = _info!;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (info.hasBattery) ...[
+              Row(
+                children: [
+                  Icon(_batteryIcon(info), color: _batteryColor(info, scheme)),
+                  const SizedBox(width: 8),
+                  Text('Controller battery', style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  Text('${info.batteryLevel}%',
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold, color: _batteryColor(info, scheme))),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: (info.batteryLevel ?? 0) / 100,
+                  minHeight: 12,
+                  color: _batteryColor(info, scheme),
+                ),
+              ),
+              if (info.batteryState == 'charging' || info.batteryState == 'full')
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(info.batteryState == 'full' ? 'Fully charged' : 'Charging',
+                      style: Theme.of(context).textTheme.bodySmall),
+                )
+              else if ((info.batteryLevel ?? 100) <= 15)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text('Low - charge the controller soon.',
+                      style: TextStyle(color: scheme.error, fontSize: 12)),
+                ),
+            ],
+            if (info.hasTouchpad) ...[
+              if (info.hasBattery) const Divider(height: 24),
+              Row(
+                children: [
+                  const Icon(Icons.touch_app_outlined),
+                  const SizedBox(width: 8),
+                  Text('Touchpad', style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  if (info.touchpadButton)
+                    Text('clicked', style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w600)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text('Slide a finger across the touchpad - the dot follows it.',
+                  style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 120,
+                child: AspectRatio(
+                  aspectRatio: 1.9,
+                  child: TouchpadView(
+                    x: info.touchpadX,
+                    y: info.touchpadY,
+                    touching: info.touchpadTouching,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _batteryIcon(ControllerInfo i) {
+    if (i.batteryState == 'charging') return Icons.battery_charging_full;
+    final l = i.batteryLevel ?? 0;
+    if (l >= 80) return Icons.battery_full;
+    if (l >= 30) return Icons.battery_5_bar;
+    return Icons.battery_alert;
+  }
+
+  Color _batteryColor(ControllerInfo i, ColorScheme scheme) {
+    final l = i.batteryLevel ?? 0;
+    if (i.batteryState == 'charging' || l >= 50) return const Color(0xFF2E7D32);
+    if (l >= 20) return const Color(0xFFE09400);
+    return scheme.error;
   }
 
   Widget _timingCard(BuildContext context) {
