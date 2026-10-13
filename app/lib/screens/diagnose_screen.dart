@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../knowledge.dart';
+import '../reference/reference.dart';
 import '../widgets.dart';
 
 class DiagnoseScreen extends StatefulWidget {
-  const DiagnoseScreen({super.key, required this.knowledge});
+  const DiagnoseScreen({super.key, required this.knowledge, required this.reference});
   final Knowledge knowledge;
+  final Reference reference;
 
   @override
   State<DiagnoseScreen> createState() => _DiagnoseScreenState();
@@ -13,14 +15,26 @@ class DiagnoseScreen extends StatefulWidget {
 
 class _DiagnoseScreenState extends State<DiagnoseScreen> {
   final _controller = TextEditingController();
+  final _dtcController = TextEditingController();
   String? _device; // null = auto / all
   List<Symptom> _matches = [];
   bool _searched = false;
+  DtcCode? _dtc;
+  bool _dtcSearched = false;
 
   @override
   void dispose() {
     _controller.dispose();
+    _dtcController.dispose();
     super.dispose();
+  }
+
+  void _lookupDtc() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _dtcSearched = true;
+      _dtc = widget.reference.dtc(_dtcController.text);
+    });
   }
 
   void _diagnose() {
@@ -93,6 +107,106 @@ class _DiagnoseScreenState extends State<DiagnoseScreen> {
                 onTap: () => showCausesSheet(context, s, _device),
               ),
             )),
+        const Divider(height: 32),
+        _carCodeCard(context),
+      ],
+    );
+  }
+
+  Widget _dtcFallback(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final raw = _dtcController.text.trim().toUpperCase();
+    if (raw.isEmpty) {
+      return Text('Enter a code above.', style: TextStyle(color: scheme.onSurfaceVariant));
+    }
+    final decoded = widget.reference.describeDtc(raw);
+    if (decoded == null) {
+      return Text('"$raw" isn’t a standard OBD-II code (they look like P0420, '
+          'C1234, B0010, U0100).', style: TextStyle(color: scheme.onSurfaceVariant));
+    }
+    // Valid code we don't have a detailed entry for: explain its structure.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(raw, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        Text(decoded, style: const TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        Text(
+          raw[1] == '1'
+              ? 'This is a manufacturer-specific code, so its exact meaning differs by '
+                  'brand. Search "$raw <your make/model>" for the definition.'
+              : 'We don’t have a detailed fix for this exact code yet. Search '
+                  '"$raw" for your make/model; a shop scan tool with live data is authoritative.',
+          style: TextStyle(color: scheme.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+
+  Widget _carCodeCard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Car trouble code (OBD-II)', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 4),
+        Text('Got a check-engine code from a scanner? Enter it (e.g. P0420) for what '
+            'it means and how to fix it.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _dtcController,
+                textCapitalization: TextCapitalization.characters,
+                onSubmitted: (_) => _lookupDtc(),
+                decoration: InputDecoration(
+                  labelText: 'Code (e.g. P0420)',
+                  filled: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            FilledButton(onPressed: _lookupDtc, child: const Text('Look up')),
+          ],
+        ),
+        if (_dtcSearched) ...[
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _dtc == null
+                  ? _dtcFallback(context)
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Text(_dtc!.code, style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: scheme.secondaryContainer,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(_dtc!.system,
+                                style: TextStyle(fontSize: 12, color: scheme.onSecondaryContainer)),
+                          ),
+                        ]),
+                        const SizedBox(height: 8),
+                        Text(_dtc!.meaning, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        Text('Fix: ${_dtc!.fix}'),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
       ],
     );
   }

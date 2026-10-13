@@ -4,13 +4,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../knowledge.dart';
+import '../reference/reference.dart';
 import '../scan/report.dart';
 import '../scan/scanner.dart';
 import '../widgets.dart';
 
 class ScanScreen extends StatefulWidget {
-  const ScanScreen({super.key, required this.knowledge});
+  const ScanScreen({super.key, required this.knowledge, required this.reference});
   final Knowledge knowledge;
+  final Reference reference;
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
@@ -151,10 +153,45 @@ class _ScanScreenState extends State<ScanScreen> {
             if (r.makeModel != null && r.makeModel!.isNotEmpty)
               SpecRow('Make / model', r.makeModel!, icon: Icons.memory),
             if (r.os.isNotEmpty) SpecRow('System', r.os, icon: Icons.settings),
+            ..._hardwareRows(r),
           ],
         ),
       ),
     );
+  }
+
+  /// Hardware identity rows, enriched with the reference maps where possible.
+  List<Widget> _hardwareRows(DeviceReport r) {
+    final rows = <Widget>[];
+
+    // Apple product type -> model + chip + release year.
+    final apple = r.appleProductType == null ? null : widget.reference.appleModel(r.appleProductType!);
+    // Android platform codename -> chip marketing name.
+    final androidChip = r.androidPlatform == null
+        ? null
+        : widget.reference.qcomPlatforms[r.androidPlatform!.toLowerCase()];
+
+    final chip = r.cpu ?? apple?.soc ?? androidChip;
+    if (chip != null && chip.isNotEmpty) {
+      rows.add(SpecRow('Chip / CPU', chip, icon: Icons.developer_board));
+    }
+    if (apple != null) {
+      rows.add(SpecRow('Apple model', apple.model, icon: Icons.phone_iphone));
+      final year = widget.reference.appleReleaseYear(apple.productType);
+      if (year != null) {
+        rows.add(SpecRow('Released', '$year', icon: Icons.event_outlined));
+      }
+    }
+    if (r.gpu != null && r.gpu!.isNotEmpty) {
+      rows.add(SpecRow('Graphics', r.gpu!, icon: Icons.videogame_asset_outlined));
+    }
+    if (r.cpuCores != null) {
+      rows.add(SpecRow('CPU cores', '${r.cpuCores}', icon: Icons.grid_view));
+    }
+    if (r.arch != null && r.arch!.isNotEmpty) {
+      rows.add(SpecRow('Architecture', r.arch!, icon: Icons.architecture));
+    }
+    return rows;
   }
 }
 

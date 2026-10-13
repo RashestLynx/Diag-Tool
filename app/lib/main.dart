@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'car/car_screen.dart';
 import 'controller/controller_screen.dart';
 import 'knowledge.dart';
 import 'recovery/recovery.dart';
 import 'recovery/recovery_screen.dart';
+import 'reference/reference.dart';
 import 'screens/diagnose_screen.dart';
 import 'screens/identify_screen.dart';
 import 'screens/scan_screen.dart';
@@ -36,15 +38,16 @@ class _Home extends StatefulWidget {
 }
 
 class _HomeState extends State<_Home> {
-  late final Future<(Knowledge, Recovery)> _data =
-      Future.wait([Knowledge.load(), Recovery.load()]).then((r) => (r[0] as Knowledge, r[1] as Recovery));
+  late final Future<(Knowledge, Recovery, Reference)> _data =
+      Future.wait([Knowledge.load(), Recovery.load(), Reference.load()])
+          .then((r) => (r[0] as Knowledge, r[1] as Recovery, r[2] as Reference));
   int _tab = 0;
 
-  static const _titles = ['Scan', 'Diagnose', 'Controller', 'Recovery', 'Identify'];
+  static const _titles = ['Scan', 'Diagnose', 'Controller', 'Car', 'Recovery', 'Identify'];
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<(Knowledge, Recovery)>(
+    return FutureBuilder<(Knowledge, Recovery, Reference)>(
       future: _data,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
@@ -56,13 +59,14 @@ class _HomeState extends State<_Home> {
             body: Center(child: Text('Failed to load: ${snap.error}')),
           );
         }
-        final (knowledge, recovery) = snap.data!;
+        final (knowledge, recovery, reference) = snap.data!;
         final screens = [
-          ScanScreen(knowledge: knowledge),
-          DiagnoseScreen(knowledge: knowledge),
+          ScanScreen(knowledge: knowledge, reference: reference),
+          DiagnoseScreen(knowledge: knowledge, reference: reference),
           const ControllerScreen(),
+          CarScreen(reference: reference),
           RecoveryScreen(recovery: recovery),
-          const IdentifyScreen(),
+          IdentifyScreen(reference: reference),
         ];
 
         // Phones get a bottom bar; wider screens (tablet/desktop) get a rail.
@@ -92,6 +96,10 @@ class _HomeState extends State<_Home> {
                         icon: Icon(Icons.sports_esports_outlined),
                         selectedIcon: Icon(Icons.sports_esports),
                         label: Text('Controller')),
+                    NavigationRailDestination(
+                        icon: Icon(Icons.directions_car_outlined),
+                        selectedIcon: Icon(Icons.directions_car),
+                        label: Text('Car')),
                     NavigationRailDestination(
                         icon: Icon(Icons.lock_reset_outlined),
                         selectedIcon: Icon(Icons.lock_reset),
@@ -124,6 +132,10 @@ class _HomeState extends State<_Home> {
                         icon: Icon(Icons.sports_esports_outlined),
                         selectedIcon: Icon(Icons.sports_esports),
                         label: 'Controller'),
+                    NavigationDestination(
+                        icon: Icon(Icons.directions_car_outlined),
+                        selectedIcon: Icon(Icons.directions_car),
+                        label: 'Car'),
                     NavigationDestination(
                         icon: Icon(Icons.lock_reset_outlined),
                         selectedIcon: Icon(Icons.lock_reset),

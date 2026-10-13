@@ -6,8 +6,10 @@ codebase builds native apps for **iPhone/iPad, Android, Windows and macOS**.
 Three tabs:
 
 - **Scan** - identifies the device it's running on (phone, tablet, laptop,
-  desktop) and checks storage, memory, battery health, temperature and uptime,
-  with fixes for anything that needs attention.
+  desktop), including chip/CPU, GPU (where the OS exposes it), architecture,
+  core count and - for Apple devices - model and release year, then checks
+  storage, memory, battery health, temperature and uptime, with fixes. It reads
+  only what the OS gives an app.
 - **Diagnose** - describe a problem in plain words, or pick a device and tap a
   symptom. Shows likely causes, most likely first, each with step-by-step
   fixes. Safety issues (swollen battery, liquid damage) are flagged.
@@ -24,6 +26,10 @@ Three tabs:
   - **Vibration test:** buzzes the low motor, high motor or both.
   - **Report timing:** reports/sec, average gap, jitter and worst gap for the
     controller->app link (not full press-to-screen lag, which needs a camera).
+  - **Raw input monitor:** shows every key/axis the OS reports, even ones the
+    standard layout can't name (e.g. the PS/Guide button or the touchpad on
+    some platforms). If nothing appears here, the OS isn't sending the app the
+    controller's input - a platform limitation, not an app bug.
   - **Battery & touchpad (iOS/macOS only):** controller battery level/charge
     state, and a live DualSense touchpad finger view, via Apple's GameController
     framework. Hidden on platforms that don't provide them.
@@ -32,17 +38,30 @@ Three tabs:
   checklists, where backups live, how to copy data off an unlocked device, and
   a builder for an ownership-proof sheet you can hand to Apple/Samsung support.
   This recovers the account you own - it does not remove anyone's lock.
+- **Car** - connect to a Bluetooth ELM327 OBD-II adapter and read the car live:
+  stored trouble codes (with meanings/fixes) and streaming sensors (RPM, coolant,
+  fuel trims, timing, throttle...). The OBD/ELM327 protocol layer is fully
+  unit-tested; the Bluetooth link is experimental and needs a real adapter to
+  verify. See `SIGNING.md` for release signing.
 - **Identify** - validate an IMEI (checksum + make/model TAC) or a serial
-  number, with links to official lookup pages.
+  number, with links to official lookup pages. Also: Apple product-type ->
+  model + chip lookup, an Android Qualcomm platform-code -> Snapdragon lookup,
+  and a manufacture-date estimate for legacy Apple serials.
+- **Diagnose** also includes a **car trouble-code (OBD-II)** lookup: enter a
+  check-engine code like P0420 for its meaning and fix. It has ~90 standardized
+  generic codes in detail, and decodes the structure of any other valid code
+  (system, generic vs manufacturer-specific, subsystem). Live reading from the
+  car's OBD-II port is done by `device_export.py --car` with an ELM327 adapter.
 
-The diagnosis advice lives in `assets/knowledge.json`, and the account-recovery
-guidance in `assets/recovery.json` - both generated from the project's Python
-code (`diag_tool.py` and `phone_info.py`) so the app and the command line stay
-in sync:
+The diagnosis advice (`assets/knowledge.json`), account-recovery guidance
+(`assets/recovery.json`) and device reference data (`assets/reference.json` -
+Apple model map, Qualcomm platforms, car codes) are all generated from the
+project's Python code (`diag_tool.py`, `phone_info.py`, `device_export.py`) so
+the app and the command line stay in sync:
 
 ```
 cd ..            # repo root
-python diag_tool.py export-json   # writes both knowledge.json and recovery.json
+python diag_tool.py export-json   # writes knowledge.json, recovery.json, reference.json
 ```
 
 ## Running and building

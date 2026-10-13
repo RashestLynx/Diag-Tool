@@ -84,9 +84,10 @@ Future<void> _android(DeviceReport r, AndroidDeviceInfo a) async {
   r.memTotal = a.physicalRamSize * _mb;
   r.memFree = a.availableRamSize * _mb;
   if (a.isLowRamDevice) r.kindDetail = 'low-RAM device';
+  r.arch = a.supportedAbis.isNotEmpty ? a.supportedAbis.first : null;
 
-  // Battery temperature, health and charge-cycle count come from the OS
-  // BatteryManager via a tiny platform channel (see MainActivity.kt).
+  // Battery temperature/health/cycles and SoC/cores come from the OS via a
+  // tiny platform channel (see MainActivity.kt).
   try {
     final extra = await _androidChannel.invokeMapMethod<String, dynamic>('batteryExtras');
     if (extra != null) {
@@ -97,6 +98,19 @@ Future<void> _android(DeviceReport r, AndroidDeviceInfo a) async {
       if (cycles != null && cycles > 0) r.batteryCycles = cycles;
     }
   } catch (_) {/* older Android or channel not wired in a given build */}
+  try {
+    final dev = await _androidChannel.invokeMapMethod<String, dynamic>('deviceExtras');
+    if (dev != null) {
+      final socMfr = (dev['socManufacturer'] as String?)?.trim() ?? '';
+      final socModel = (dev['socModel'] as String?)?.trim() ?? '';
+      final soc = '$socMfr $socModel'.trim();
+      if (soc.isNotEmpty) r.cpu = soc;
+      final platform = (dev['board'] as String?)?.trim();
+      if (platform != null && platform.isNotEmpty) r.androidPlatform = platform;
+      final cores = dev['cores'] as int?;
+      if (cores != null && cores > 0) r.cpuCores = cores;
+    }
+  } catch (_) {/* channel method missing on an older build */}
 }
 
 bool _looksLikeTablet(AndroidDeviceInfo a) {
@@ -114,8 +128,10 @@ void _ios(DeviceReport r, IosDeviceInfo i) {
   r.memTotal = i.physicalRamSize * _mb;
   r.memFree = i.availableRamSize * _mb;
   if (!i.isPhysicalDevice) r.kindDetail = 'simulator';
-  // iOS doesn't expose battery temperature/health to third-party apps;
-  // the scan still covers storage, memory and charge level.
+  // "iPhone14,5" style id -> mapped to model + chip + release year by the UI.
+  r.appleProductType = i.utsname.machine;
+  r.arch = i.utsname.machine;
+  // iOS doesn't expose GPU, CPU brand, battery temp/health or serial to apps.
 }
 
 Future<void> _macos(DeviceReport r, MacOsDeviceInfo m) async {
@@ -124,13 +140,28 @@ Future<void> _macos(DeviceReport r, MacOsDeviceInfo m) async {
   r.makeModel = 'Apple ${m.modelName.isNotEmpty ? m.modelName : m.model}';
   r.os = 'macOS ${m.osRelease}';
   r.memTotal = m.memorySize;
+  r.arch = m.arch;
+  r.cpuCores = m.activeCPUs;
+  r.appleProductType = m.model; // e.g. "Mac14,2"
+  _macCpuBrand(r);
   _diskFromStatfs(r, '/');
   _thermalFromPmset(r);
+}
+
+void _macCpuBrand(DeviceReport r) {
+  try {
+    final out = Process.runSync('sysctl', ['-n', 'machdep.cpu.brand_string']);
+    if (out.exitCode == 0) {
+      final s = (out.stdout as String).trim();
+      if (s.isNotEmpty) r.cpu = s;
+    }
+  } catch (_) {/* blocked under the App Sandbox - degrade quietly */}
 }
 
 Future<void> _windows(DeviceReport r, WindowsDeviceInfo w) async {
   r.os = w.productName.isNotEmpty ? w.productName : 'Windows';
   r.memTotal = w.systemMemoryInMegabytes * _mb;
+  r.arch = Platform.environment['PROCESSOR_ARCHITECTURE'];
 
   final native = readWindowsInfo();
   r.diskTotal = native.diskTotal;
@@ -150,6 +181,9 @@ Future<void> _windows(DeviceReport r, WindowsDeviceInfo w) async {
   }
   r.batteryCapacityPct = wmi.batteryCapacityPct;
   r.batteryCycles = wmi.batteryCycles;
+  r.cpu = wmi.cpu;
+  r.gpu = wmi.gpu;
+  if (wmi.cpuCores != null && wmi.cpuCores! > 0) r.cpuCores = wmi.cpuCores;
 
   final chassis = wmi.chassisType;
   r.kind = chassis != null
@@ -163,6 +197,7 @@ Future<void> _linux(DeviceReport r, LinuxDeviceInfo l) async {
   r.makeModel = l.prettyName;
   r.os = l.prettyName;
   _readLinuxDmi(r);
+  _readLinuxCpu(r);
   _diskFromStatfs(r, '/');
   final mem = _readProcMeminfo();
   if (mem != null) {
@@ -192,6 +227,20 @@ void _readLinuxDmi(DeviceReport r) {
     r.kind = 'desktop';
     r.kindDetail = 'container';
   }
+}
+
+void _readLinuxCpu(DeviceReport r) {
+  final text = _readFile('/proc/cpuinfo');
+  if (text == null) return;
+  var cores = 0;
+  for (final line in text.split('\n')) {
+    if (line.startsWith('processor')) cores++;
+    if (r.cpu == null && line.toLowerCase().startsWith('model name')) {
+      final v = line.split(':');
+      if (v.length > 1) r.cpu = v[1].trim();
+    }
+  }
+  if (cores > 0) r.cpuCores = cores;
 }
 
 void _diskFromStatfs(DeviceReport r, String path) {

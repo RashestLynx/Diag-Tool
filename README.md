@@ -7,6 +7,11 @@ Tells you **what's going on** with an electronic device, **how to fix it**, and
 - a **cross-platform app** for iPhone/iPad, Android, Windows and macOS, in
   [`app/`](app/) - which adds a live PS5/Xbox controller tester.
 
+Two companion scripts handle real connected devices: `phone_info.py`
+(account recovery for a locked phone you own) and `device_export.py` (read
+specs and pull data off an **unlocked, trusted** phone, camera or car - see
+below).
+
 Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 `scan` results on Windows/macOS.)
 
@@ -80,6 +85,37 @@ python diag_tool.py identify --serial C39XY1234567
 
 Validates the IMEI checksum, pulls out the TAC (the make/model code), and
 points you at official lookup pages.
+
+## Connected devices (`device_export.py`)
+
+Reads and copies data from a device plugged into this computer, using the
+official first-party protocols. It only works on a phone that is **unlocked**
+and has approved this computer ("Trust This Computer" on iPhone, the USB
+"Allow" prompt on Android) - that on-device approval is the consent step, so it
+cannot and does not bypass any lock.
+
+```
+python device_export.py --check                 # what backends/devices are visible
+python device_export.py --auto --save report.txt  # every read-only check on everything
+python device_export.py --ios --specs           # full iPhone specs (needs pymobiledevice3)
+python device_export.py --android --diagnose     # battery/storage/thermal/crashes (needs adb)
+python device_export.py --ios --photos --out ./iphone_photos   # pull the camera roll
+python device_export.py --ios --backup --out ./iphone_backup   # full iPhone backup
+python device_export.py --camera --photos --out ./cam   # a camera over PTP (needs gphoto2)
+python device_export.py --car --port /dev/ttyUSB0       # full report: codes, readiness, misfires, live
+python device_export.py --car --live                    # live sensor data (RPM, timing, fuel trims, O2...)
+python device_export.py --car --monitors                # emissions readiness + Mode 06 misfire monitors
+python device_export.py --car --watch --log drive.csv   # record a drive to CSV for graphing
+python device_export.py --graph drive.csv               # turn that CSV into an HTML chart dashboard
+python device_export.py --car --clear                   # clear codes / reset the light (asks first)
+python device_export.py --apple-model iPhone14,5        # offline: model + chip, no device
+```
+
+Backends are optional and only needed for the matching target: `pip install
+pymobiledevice3` (iPhone), Android SDK platform-tools (`adb`), `gphoto2`
+(cameras), `pip install obd` + an ELM327 adapter (cars). It also reads specs,
+identifies the chipset, flags counterfeit/fake-iPhone tells, and estimates the
+manufacture date of legacy Apple serials.
 
 ## Also included
 

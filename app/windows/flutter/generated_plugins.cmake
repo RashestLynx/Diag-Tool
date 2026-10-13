@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
+  flutter_blue_plus_winrt
   gamepads_windows
   url_launcher_windows
 )
