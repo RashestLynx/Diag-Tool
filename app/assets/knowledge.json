@@ -1,0 +1,1180 @@
+{
+ "devices": {
+  "phone": [
+   "phone",
+   "iphone",
+   "android",
+   "samsung",
+   "galaxy",
+   "pixel",
+   "cell",
+   "mobile",
+   "smartphone"
+  ],
+  "tablet": [
+   "tablet",
+   "ipad",
+   "kindle",
+   "fire hd",
+   "galaxy tab",
+   "surface go"
+  ],
+  "laptop": [
+   "laptop",
+   "notebook",
+   "macbook",
+   "chromebook",
+   "thinkpad",
+   "ultrabook"
+  ],
+  "desktop": [
+   "desktop",
+   "pc",
+   "computer",
+   "tower",
+   "imac",
+   "gaming rig"
+  ],
+  "console": [
+   "console",
+   "playstation",
+   "ps4",
+   "ps5",
+   "xbox",
+   "switch",
+   "nintendo",
+   "steam deck"
+  ],
+  "tv": [
+   "tv",
+   "television",
+   "monitor",
+   "screen tv",
+   "smart tv",
+   "roku",
+   "fire stick",
+   "chromecast"
+  ],
+  "router": [
+   "router",
+   "modem",
+   "wifi box",
+   "mesh",
+   "access point",
+   "internet box"
+  ],
+  "headphones": [
+   "headphones",
+   "earbuds",
+   "airpods",
+   "headset",
+   "earphones",
+   "speaker",
+   "bluetooth speaker"
+  ],
+  "printer": [
+   "printer",
+   "scanner",
+   "inkjet",
+   "laser printer"
+  ],
+  "smartwatch": [
+   "watch",
+   "smartwatch",
+   "apple watch",
+   "fitbit",
+   "galaxy watch"
+  ]
+ },
+ "symptoms": [
+  {
+   "key": "no_power",
+   "title": "Won't turn on / completely dead",
+   "keywords": [
+    "won't turn on",
+    "wont turn on",
+    "doesn't turn on",
+    "not turning on",
+    "dead",
+    "no power",
+    "won't boot",
+    "wont boot",
+    "won't start",
+    "black and dead",
+    "nothing happens"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Battery fully drained",
+     "likelihood": 5,
+     "fixes": [
+      "Plug it into a known-good charger and wall outlet (not a PC USB port).",
+      "Leave it charging 30 minutes before trying to power on - a deeply drained battery shows nothing at first."
+     ],
+     "devices": [
+      "console",
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Device is on but frozen with screen off",
+     "likelihood": 4,
+     "fixes": [
+      "Force restart. iPhone: Vol Up, Vol Down, then hold Side until the logo. Android: hold Power + Vol Down ~15 s. Laptop/console: hold power 15 s."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Bad power cable, adapter or outlet",
+     "likelihood": 4,
+     "fixes": [
+      "Try a different cable, adapter and wall socket.",
+      "Check the charger/adapter light (if it has one).",
+      "Desktop: confirm the switch on the back of the power supply is ON."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Dirty or damaged charging port",
+     "likelihood": 3,
+     "fixes": [
+      "Shine a light into the port; remove lint gently with a wooden toothpick or plastic pick. Never metal."
+     ],
+     "devices": [
+      "console",
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Failed power supply (PSU)",
+     "likelihood": 3,
+     "fixes": [
+      "Listen for fans / look for lights when you press power.",
+      "Test with a PSU tester or swap in a known-good PSU."
+     ],
+     "devices": [
+      "console",
+      "desktop",
+      "printer",
+      "router",
+      "tv"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Dead battery or failed board component",
+     "likelihood": 2,
+     "fixes": [
+      "If nothing above works, get a repair quote - battery replacement is cheap; board repair may not be worth it on older devices."
+     ],
+     "devices": null,
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "not_charging",
+   "title": "Won't charge / charges slowly",
+   "keywords": [
+    "won't charge",
+    "wont charge",
+    "not charging",
+    "doesn't charge",
+    "charges slow",
+    "slow charging",
+    "charging slowly",
+    "stuck at",
+    "charger not working"
+   ],
+   "devices": [
+    "console",
+    "headphones",
+    "laptop",
+    "phone",
+    "smartwatch",
+    "tablet"
+   ],
+   "causes": [
+    {
+     "name": "Lint in the charging port",
+     "likelihood": 5,
+     "fixes": [
+      "Power off, then gently clear the port with a wooden toothpick.",
+      "Compressed air in short bursts, held upright."
+     ],
+     "devices": [
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Faulty cable or adapter",
+     "likelihood": 5,
+     "fixes": [
+      "Swap cable and adapter one at a time to find the bad part.",
+      "Use the manufacturer's charger or a certified one (USB-IF / MFi)."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Optimized / adaptive charging holding at 80%",
+     "likelihood": 3,
+     "fixes": [
+      "iPhone: Settings > Battery > Charging. Android: Settings > Battery > Adaptive/Protect battery. macOS: Battery > Optimized charging.",
+      "This is normal behaviour, not a fault."
+     ],
+     "devices": [
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Too hot or too cold",
+     "likelihood": 3,
+     "fixes": [
+      "Let it reach room temperature; charging pauses outside ~0-35 C.",
+      "Remove thick cases while charging."
+     ],
+     "devices": [
+      "console",
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Software charging glitch",
+     "likelihood": 2,
+     "fixes": [
+      "Restart the device while plugged in.",
+      "Install pending system updates."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Worn-out battery",
+     "likelihood": 3,
+     "fixes": [
+      "Check battery health (iPhone: Settings > Battery > Battery Health; Windows: `powercfg /batteryreport`; macOS: System Settings > Battery).",
+      "Below ~80% capacity: replace the battery."
+     ],
+     "devices": [
+      "console",
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "battery_drain",
+   "title": "Battery drains fast",
+   "keywords": [
+    "battery drain",
+    "drains fast",
+    "battery dies",
+    "battery dying",
+    "battery life",
+    "dies quickly",
+    "battery low",
+    "battery goes",
+    "doesn't hold charge",
+    "won't hold charge"
+   ],
+   "devices": [
+    "console",
+    "headphones",
+    "laptop",
+    "phone",
+    "smartwatch",
+    "tablet"
+   ],
+   "causes": [
+    {
+     "name": "App or process running in the background",
+     "likelihood": 5,
+     "fixes": [
+      "Open the battery usage screen and find the top consumer.",
+      "Phone: Settings > Battery. Windows: Settings > System > Power & battery. macOS: Activity Monitor > Energy.",
+      "Force-quit or uninstall the offender; update it if it's an app bug."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Screen brightness / always-on display",
+     "likelihood": 4,
+     "fixes": [
+      "Turn on auto-brightness, shorten screen timeout, disable always-on display."
+     ],
+     "devices": [
+      "console",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Weak signal (phone searching for network)",
+     "likelihood": 3,
+     "fixes": [
+      "In poor-signal areas switch to Wi-Fi calling or Airplane mode + Wi-Fi."
+     ],
+     "devices": [
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Battery is old / degraded",
+     "likelihood": 4,
+     "fixes": [
+      "Check battery health / cycle count (see 'Won't charge').",
+      "Lithium batteries last ~500-1000 cycles; replacement is the fix."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Recent update re-indexing",
+     "likelihood": 2,
+     "fixes": [
+      "After a major update, drain is normal for 1-2 days while it re-indexes."
+     ],
+     "devices": null,
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "swollen_battery",
+   "title": "Swollen battery / bulging case",
+   "keywords": [
+    "swollen",
+    "bulging",
+    "puffy",
+    "battery swelling",
+    "case lifting",
+    "screen lifting",
+    "back popping",
+    "trackpad won't click",
+    "pillow"
+   ],
+   "devices": [
+    "console",
+    "headphones",
+    "laptop",
+    "phone",
+    "smartwatch",
+    "tablet"
+   ],
+   "causes": [
+    {
+     "name": "Lithium battery swelling (gas build-up)",
+     "likelihood": 5,
+     "fixes": [
+      "STOP using and charging it now. Power it off.",
+      "Do not press on it, puncture it, or try to flatten it.",
+      "Keep it on a non-flammable surface away from anything that can burn.",
+      "Take it to a repair shop for battery replacement and dispose of the old battery at a battery recycling point - never in household trash."
+     ],
+     "devices": null,
+     "warning": "FIRE RISK - a swollen battery can catch fire. Stop using it."
+    }
+   ]
+  },
+  {
+   "key": "overheating",
+   "title": "Overheating / gets hot",
+   "keywords": [
+    "overheat",
+    "overheating",
+    "hot",
+    "too warm",
+    "burning",
+    "heats up",
+    "fan loud",
+    "fan noise",
+    "loud fan",
+    "thermal",
+    "temperature"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Blocked vents / dust build-up",
+     "likelihood": 5,
+     "fixes": [
+      "Use it on a hard flat surface, never a bed or lap blanket.",
+      "Blow out vents with compressed air (hold fans still while doing it).",
+      "Desktop/console: clean dust filters and heatsinks every 6-12 months."
+     ],
+     "devices": [
+      "console",
+      "desktop",
+      "laptop",
+      "router",
+      "tv"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Heavy load (games, video, many apps)",
+     "likelihood": 4,
+     "fixes": [
+      "Close apps you're not using; check Task Manager / Activity Monitor for anything using lots of CPU."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Charging while doing heavy work, or in a thick case",
+     "likelihood": 3,
+     "fixes": [
+      "Remove the case and avoid gaming while charging."
+     ],
+     "devices": [
+      "laptop",
+      "phone",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Hot environment / direct sunlight",
+     "likelihood": 3,
+     "fixes": [
+      "Move it out of the sun and away from heaters; let it cool before use."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Dried-out thermal paste",
+     "likelihood": 2,
+     "fixes": [
+      "On machines 3+ years old, re-pasting the CPU/GPU often drops temps 10-20 C. Doable at home on desktops; laptops/consoles - repair shop."
+     ],
+     "devices": [
+      "console",
+      "desktop",
+      "laptop"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Failing / swelling battery",
+     "likelihood": 2,
+     "fixes": [
+      "If the case is bulging see 'Swollen battery' - stop using it."
+     ],
+     "devices": [
+      "console",
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "slow",
+   "title": "Slow / laggy",
+   "keywords": [
+    "slow",
+    "laggy",
+    "lag",
+    "sluggish",
+    "takes forever",
+    "freezes",
+    "freezing",
+    "hangs",
+    "unresponsive",
+    "stutter"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Storage almost full",
+     "likelihood": 5,
+     "fixes": [
+      "Keep at least 10-15% of storage free.",
+      "Delete big unused apps, old downloads, duplicate photos/videos; move media to cloud or external storage.",
+      "Run `python diag_tool.py scan` on a computer to check disk space."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Too many apps / tabs / startup programs",
+     "likelihood": 5,
+     "fixes": [
+      "Restart the device - it clears memory and stuck processes.",
+      "Windows: Task Manager > Startup apps, disable what you don't need. macOS: System Settings > General > Login Items.",
+      "Close browser tabs; remove unneeded browser extensions."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Overheating causing throttling",
+     "likelihood": 3,
+     "fixes": [
+      "See 'Overheating' - hot chips slow themselves down on purpose."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Malware or adware",
+     "likelihood": 3,
+     "fixes": [
+      "Run a full scan (Windows Security / Malwarebytes).",
+      "Uninstall apps you don't recognise; reset browser settings."
+     ],
+     "devices": [
+      "desktop",
+      "laptop",
+      "phone",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Outdated software",
+     "likelihood": 3,
+     "fixes": [
+      "Install system and app updates."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Old hard drive (HDD) or failing drive",
+     "likelihood": 2,
+     "fixes": [
+      "Upgrading an HDD to an SSD is the single biggest speed-up for old PCs.",
+      "Check drive health: Windows `wmic diskdrive get status`, or CrystalDiskInfo; Linux `smartctl -a /dev/sda`."
+     ],
+     "devices": [
+      "console",
+      "desktop",
+      "laptop"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Not enough RAM for what you run",
+     "likelihood": 2,
+     "fixes": [
+      "If memory is constantly >90% used, add RAM (desktops, some laptops)."
+     ],
+     "devices": [
+      "desktop",
+      "laptop"
+     ],
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "crashing",
+   "title": "Crashes / restarts / blue screen",
+   "keywords": [
+    "crash",
+    "crashes",
+    "crashing",
+    "restarts",
+    "reboots",
+    "blue screen",
+    "bsod",
+    "keeps restarting",
+    "boot loop",
+    "bootloop",
+    "kernel panic",
+    "apps close"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "A buggy app or driver",
+     "likelihood": 5,
+     "fixes": [
+      "Note what you were doing when it crashed - one app? Update or reinstall it.",
+      "Windows: update GPU/chipset drivers; check Event Viewer > Windows Logs > System.",
+      "macOS: check Console app > Crash Reports."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Overheating",
+     "likelihood": 3,
+     "fixes": [
+      "See 'Overheating'. Crashes under load + heat point here."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Corrupt system update",
+     "likelihood": 3,
+     "fixes": [
+      "Phone stuck in boot loop: boot to recovery and clear cache partition (Android) or update via computer (iPhone - Finder/Apple Devices app, choose 'Update' not 'Restore' to keep data).",
+      "Windows: Settings > System > Recovery > 'Fix problems using Windows Update'."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Faulty RAM",
+     "likelihood": 2,
+     "fixes": [
+      "Run Windows Memory Diagnostic or MemTest86.",
+      "Reseat RAM sticks; test one stick at a time."
+     ],
+     "devices": [
+      "desktop",
+      "laptop"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Weak / failing power supply",
+     "likelihood": 2,
+     "fixes": [
+      "Random restarts under load on a desktop often mean the PSU."
+     ],
+     "devices": [
+      "console",
+      "desktop"
+     ],
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "screen",
+   "title": "Screen problems (black, flickering, lines, dead touch)",
+   "keywords": [
+    "screen",
+    "display",
+    "flicker",
+    "flickering",
+    "black screen",
+    "lines on",
+    "touch not working",
+    "touchscreen",
+    "ghost touch",
+    "cracked",
+    "dim",
+    "no picture",
+    "no signal",
+    "dead pixels",
+    "green line"
+   ],
+   "devices": [
+    "console",
+    "desktop",
+    "laptop",
+    "phone",
+    "smartwatch",
+    "tablet",
+    "tv"
+   ],
+   "causes": [
+    {
+     "name": "Display asleep / brightness at zero",
+     "likelihood": 4,
+     "fixes": [
+      "Press a key / tap / raise brightness. TV: check the input/source button."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Loose or bad video cable / wrong input",
+     "likelihood": 4,
+     "fixes": [
+      "Reseat HDMI/DisplayPort at both ends; try another cable and port.",
+      "TV/monitor: cycle through inputs with the Source button."
+     ],
+     "devices": [
+      "console",
+      "desktop",
+      "tv"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Graphics driver problem",
+     "likelihood": 3,
+     "fixes": [
+      "Windows: press Win+Ctrl+Shift+B to reset the graphics driver.",
+      "Update or reinstall the GPU driver."
+     ],
+     "devices": [
+      "desktop",
+      "laptop"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Screen protector / dirt causing bad touch",
+     "likelihood": 3,
+     "fixes": [
+      "Clean the screen; remove a cracked or bubbled screen protector."
+     ],
+     "devices": [
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Physical damage (crack, pressure, liquid)",
+     "likelihood": 3,
+     "fixes": [
+      "Lines, colour blotches or black spots after a drop = panel damage. Screen replacement needed - get a quote before deciding."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Loose display cable inside",
+     "likelihood": 2,
+     "fixes": [
+      "Flicker that changes when you move a laptop lid points to the hinge cable - repair shop job."
+     ],
+     "devices": [
+      "laptop"
+     ],
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "no_internet",
+   "title": "No Wi-Fi / internet / Bluetooth",
+   "keywords": [
+    "wifi",
+    "wi-fi",
+    "internet",
+    "no connection",
+    "won't connect",
+    "wont connect",
+    "disconnects",
+    "drops",
+    "offline",
+    "network",
+    "bluetooth",
+    "pairing",
+    "won't pair",
+    "no signal",
+    "no service",
+    "slow internet"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Router / modem needs a restart",
+     "likelihood": 5,
+     "fixes": [
+      "Unplug the router AND modem for 30 seconds, plug the modem in first, wait for it to settle, then the router."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Device network glitch",
+     "likelihood": 5,
+     "fixes": [
+      "Toggle Wi-Fi/Bluetooth off and on; toggle Airplane mode.",
+      "'Forget' the network or Bluetooth device and reconnect.",
+      "Restart the device."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Internet provider outage",
+     "likelihood": 3,
+     "fixes": [
+      "Check from another device. If nothing works, check the provider's outage page / app using mobile data."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Too far from router / interference",
+     "likelihood": 3,
+     "fixes": [
+      "Move closer; use the 2.4 GHz band for range, 5 GHz for speed.",
+      "Consider a mesh system for big or multi-floor homes."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Network settings corrupted",
+     "likelihood": 2,
+     "fixes": [
+      "iPhone: Settings > General > Transfer or Reset > Reset Network Settings. Android: Settings > System > Reset options > Reset Wi-Fi & Bluetooth. Windows: Settings > Network > Advanced > Network reset.",
+      "This forgets saved Wi-Fi passwords."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Router firmware out of date / overheating",
+     "likelihood": 2,
+     "fixes": [
+      "Log into the router admin page and update firmware; keep it ventilated."
+     ],
+     "devices": [
+      "router"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Bluetooth device still paired to something else",
+     "likelihood": 3,
+     "fixes": [
+      "Turn off Bluetooth on the other phone/PC, or put the device into pairing mode (usually hold the button until the light flashes)."
+     ],
+     "devices": [
+      "console",
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "no_sound",
+   "title": "No sound / bad audio / mic not working",
+   "keywords": [
+    "no sound",
+    "no audio",
+    "sound",
+    "audio",
+    "speaker",
+    "crackling",
+    "muffled",
+    "mic",
+    "microphone",
+    "can't hear",
+    "cant hear",
+    "one side",
+    "one earbud",
+    "volume"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Muted or wrong output device selected",
+     "likelihood": 5,
+     "fixes": [
+      "Check volume, mute switch (iPhone side switch), and Do Not Disturb.",
+      "Computer: pick the right output in the sound settings / tray icon.",
+      "Phone: make sure it isn't still connected to Bluetooth headphones/car."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Dirt in speaker / mic / earbud mesh",
+     "likelihood": 4,
+     "fixes": [
+      "Brush gently with a soft dry toothbrush; for earbuds, a dry cotton swab."
+     ],
+     "devices": [
+      "headphones",
+      "laptop",
+      "phone",
+      "smartwatch",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "App permission for microphone denied",
+     "likelihood": 3,
+     "fixes": [
+      "Settings > Privacy > Microphone - allow the app."
+     ],
+     "devices": [
+      "desktop",
+      "laptop",
+      "phone",
+      "tablet"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Audio driver problem",
+     "likelihood": 3,
+     "fixes": [
+      "Windows: Device Manager > Sound > uninstall device, then restart."
+     ],
+     "devices": [
+      "desktop",
+      "laptop"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Earbuds out of sync / unbalanced",
+     "likelihood": 3,
+     "fixes": [
+      "Check the left/right balance in accessibility settings.",
+      "Reset the earbuds (put in case, hold the case button until the light flashes) and re-pair."
+     ],
+     "devices": [
+      "headphones"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Blown / damaged speaker",
+     "likelihood": 2,
+     "fixes": [
+      "Crackling at every volume after a drop or water = hardware repair."
+     ],
+     "devices": null,
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "water",
+   "title": "Water / liquid damage",
+   "keywords": [
+    "water",
+    "wet",
+    "liquid",
+    "dropped in",
+    "spilled",
+    "spill",
+    "toilet",
+    "pool",
+    "rain",
+    "coffee",
+    "soda",
+    "moisture"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Liquid inside the device",
+     "likelihood": 5,
+     "fixes": [
+      "Power it off immediately. Do NOT charge it or plug it in.",
+      "Remove case, SIM tray, removable battery and accessories.",
+      "Wipe it dry, shake out gently with ports facing down.",
+      "Let it air-dry in a dry, ventilated place for 24-48 h (rice does NOT help and adds dust).",
+      "Sugary or salty liquid: get it to a repair shop soon - residue corrodes boards even after drying.",
+      "Laptop spill: turn it upside down in a tent shape immediately."
+     ],
+     "devices": null,
+     "warning": "Do not charge or power on a wet device - it can short circuit."
+    }
+   ]
+  },
+  {
+   "key": "storage_full",
+   "title": "Storage full",
+   "keywords": [
+    "storage full",
+    "out of space",
+    "no space",
+    "storage almost full",
+    "disk full",
+    "not enough storage",
+    "memory full",
+    "can't download"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Photos, videos and messages filling storage",
+     "likelihood": 5,
+     "fixes": [
+      "Back up photos to cloud/computer, then delete local copies.",
+      "Delete old message threads with big attachments.",
+      "iPhone: Settings > General > iPhone Storage. Android: Settings > Storage."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Large apps / caches / downloads",
+     "likelihood": 4,
+     "fixes": [
+      "Uninstall unused apps; clear app caches; empty Downloads and Trash.",
+      "Windows: Settings > System > Storage > Storage Sense."
+     ],
+     "devices": null,
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "buttons_ports",
+   "title": "Buttons, keys or ports not working",
+   "keywords": [
+    "button",
+    "keyboard",
+    "key",
+    "keys",
+    "trackpad",
+    "touchpad",
+    "mouse",
+    "usb",
+    "port",
+    "joystick",
+    "drift",
+    "controller",
+    "stick drift",
+    "hdmi port",
+    "headphone jack"
+   ],
+   "devices": null,
+   "causes": [
+    {
+     "name": "Dirt / debris under keys or in ports",
+     "likelihood": 4,
+     "fixes": [
+      "Compressed air at an angle; clean ports with a plastic pick."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Software / driver glitch",
+     "likelihood": 3,
+     "fixes": [
+      "Restart; reconnect the accessory; update drivers/firmware.",
+      "Controller: re-pair and update controller firmware."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Controller stick drift (worn sensor)",
+     "likelihood": 4,
+     "fixes": [
+      "Recalibrate in the console's settings.",
+      "Persistent drift = stick module replacement (cheap part, fiddly job) or warranty claim."
+     ],
+     "devices": [
+      "console"
+     ],
+     "warning": null
+    },
+    {
+     "name": "Physical wear or damage",
+     "likelihood": 2,
+     "fixes": [
+      "Use accessibility shortcuts (on-screen keyboard / AssistiveTouch) until repaired."
+     ],
+     "devices": null,
+     "warning": null
+    }
+   ]
+  },
+  {
+   "key": "printer_issues",
+   "title": "Printer won't print / jams / streaks",
+   "keywords": [
+    "won't print",
+    "wont print",
+    "paper jam",
+    "jam",
+    "streaks",
+    "faded",
+    "offline printer",
+    "printer offline",
+    "ink",
+    "toner",
+    "spooler"
+   ],
+   "devices": [
+    "printer"
+   ],
+   "causes": [
+    {
+     "name": "Printer offline / wrong printer selected",
+     "likelihood": 5,
+     "fixes": [
+      "Turn the printer off and on; make sure it's on the same Wi-Fi.",
+      "Windows: Settings > Bluetooth & devices > Printers - set the right default, remove duplicate copies.",
+      "Restart the print spooler (Windows: services.msc > Print Spooler > Restart)."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Paper jam / scrap of paper inside",
+     "likelihood": 4,
+     "fixes": [
+      "Power off, open all doors, pull paper out in the direction it travels."
+     ],
+     "devices": null,
+     "warning": null
+    },
+    {
+     "name": "Clogged print head / low ink or toner",
+     "likelihood": 4,
+     "fixes": [
+      "Run the print-head cleaning utility from the printer menu.",
+      "Replace low cartridges; shake laser toner gently."
+     ],
+     "devices": null,
+     "warning": null
+    }
+   ]
+  }
+ ]
+}
