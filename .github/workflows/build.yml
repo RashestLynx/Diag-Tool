@@ -1,0 +1,168 @@
+name: Build apps
+
+# Builds the Diag-Tool app for Android, Windows and macOS on every push and
+# pull request, and uploads the results as downloadable artifacts. iOS is built
+# unsigned (a signed .ipa needs Apple credentials, which aren't in CI).
+#
+# The CLI/Python tests run too, so the whole repo is checked in one place.
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Cut a versioned release with this tag (e.g. v1.0). Leave blank for a normal build."
+        required: false
+        default: ""
+
+env:
+  FLUTTER_VERSION: "3.47.7"
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  python-cli:
+    name: Python CLI tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+      - name: Check the app's knowledge base is in sync
+        run: |
+          python diag_tool.py export-json
+          git diff --exit-code app/assets/knowledge.json \
+            || (echo "knowledge.json is stale - run: python diag_tool.py export-json" && exit 1)
+
+  analyze-test:
+    name: Flutter analyze & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  android:
+    name: Android APK
+    needs: [analyze-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-tool-android-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
+
+  windows:
+    name: Windows build
+    needs: [analyze-test]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-tool-windows
+          path: app/build/windows/x64/runner/Release
+
+  macos:
+    name: macOS build
+    needs: [analyze-test]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build macos --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-tool-macos
+          path: app/build/macos/Build/Products/Release/*.app
+
+  ios:
+    name: iOS build (unsigned)
+    needs: [analyze-test]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+
+  # Publish the built apps to a rolling "latest" GitHub Release so the README
+  # can link directly to downloadable files. Push events only (not PRs/forks).
+  release:
+    name: Publish downloads
+    needs: [android, windows, macos]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Package release files
+        run: |
+          mkdir -p release
+          cp artifacts/diag-tool-android-apk/app-release.apk release/diag-tool-android.apk
+          (cd artifacts/diag-tool-windows && zip -r "$GITHUB_WORKSPACE/release/diag-tool-windows.zip" .)
+          (cd artifacts/diag-tool-macos && zip -r "$GITHUB_WORKSPACE/release/diag-tool-macos.zip" .)
+          ls -lh release
+      # On a v* tag -> a versioned release (v1.0, ...). On a branch push -> the
+      # rolling "latest" prerelease. Both get the same three download files.
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag != '' && inputs.release_tag || (github.ref_type == 'tag' && github.ref_name || 'latest') }}
+          name: ${{ inputs.release_tag != '' && inputs.release_tag || (github.ref_type == 'tag' && github.ref_name || 'Latest build') }}
+          prerelease: ${{ inputs.release_tag == '' && github.ref_type != 'tag' }}
+          body: >-
+            Download the app for your platform below. Desktop/Android builds are
+            unsigned, so expect an "unknown developer" prompt. iOS needs an
+            Apple-signed build.
+          files: release/*

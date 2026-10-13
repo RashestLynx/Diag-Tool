@@ -1,10 +1,46 @@
 # Diag-Tool
 
-A command-line tool that tells you **what's going on** with an electronic
-device, **how to fix it**, and **what kind of device it is**.
+Tells you **what's going on** with an electronic device, **how to fix it**, and
+**what kind of device it is**. Comes in two forms:
+
+- a **command-line tool** (`diag_tool.py`, this file), and
+- a **cross-platform app** for iPhone/iPad, Android, Windows and macOS, in
+  [`app/`](app/) - which adds a live PS5/Xbox controller tester.
 
 Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 `scan` results on Windows/macOS.)
+
+## Download
+
+**Stable release — v1.0:**
+
+- **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-android.apk
+- **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-windows.zip
+- **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-macos.zip
+
+**Latest build** (rebuilt automatically on every push):
+
+- **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-android.apk
+- **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-windows.zip
+- **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-macos.zip
+- **All releases:** https://github.com/RashestLynx/Diag-Tool/releases
+
+> The desktop/Android builds are unsigned, so your OS will show an
+> "unknown developer" prompt the first time. iPhone needs an Apple-signed
+> build (see [`app/README.md`](app/README.md)).
+
+Clone the source:
+
+```
+git clone -b ccr-2c5184d8-u5e4pj https://github.com/RashestLynx/Diag-Tool.git
+```
+
+## Building the apps
+
+GitHub Actions builds the Android APK and Windows/macOS apps on every push
+(see [`.github/workflows/build.yml`](.github/workflows/build.yml)) and uploads
+them as downloadable artifacts - open the run under the repo's **Actions** tab
+and grab the one you need. To build locally, see [`app/README.md`](app/README.md).
 
 ## Commands
 

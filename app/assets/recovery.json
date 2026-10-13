@@ -1,0 +1,112 @@
+{
+ "services": {
+  "apple": [
+   {
+    "name": "Apple Account recovery",
+    "url": "https://iforgot.apple.com"
+   },
+   {
+    "name": "Check coverage / verify a device",
+    "url": "https://checkcoverage.apple.com"
+   },
+   {
+    "name": "iCloud (backups, photos, Find My)",
+    "url": "https://www.icloud.com"
+   },
+   {
+    "name": "Manage your Apple Account",
+    "url": "https://appleid.apple.com"
+   }
+  ],
+  "samsung": [
+   {
+    "name": "Samsung account recovery",
+    "url": "https://account.samsung.com"
+   },
+   {
+    "name": "Find My Mobile (remote unlock if enabled)",
+    "url": "https://findmymobile.samsung.com"
+   },
+   {
+    "name": "Google account recovery",
+    "url": "https://accounts.google.com/signin/recovery"
+   },
+   {
+    "name": "Google Find Hub (device + backups)",
+    "url": "https://www.google.com/android/find"
+   }
+  ]
+ },
+ "checklists": {
+  "apple": [
+   "On the locked iPhone: after several wrong tries, look for 'Forgot",
+   "  Passcode?' / 'iPhone Unavailable' -> it can reset via Apple Account.",
+   "Go to https://iforgot.apple.com and enter the Apple ID (often your",
+   "  old email). You do NOT need to receive mail there if you have a",
+   "  trusted phone number or another signed-in Apple device.",
+   "Choose 'Can't access your trusted number/device?' to start Account",
+   "  Recovery - Apple verifies ownership over a waiting period.",
+   "Once in the Apple Account: visit https://www.icloud.com to see Photos",
+   "  and whether an iCloud Backup exists.",
+   "Confirm the device at https://checkcoverage.apple.com using the serial.",
+   "Last resort / proof of ownership: Apple Store Genius Bar with receipt."
+  ],
+  "samsung": [
+   "Try Samsung account first: https://account.samsung.com -> 'Find ID'",
+   "  / 'Reset password' using your phone number.",
+   "If Find My Mobile was enabled, https://findmymobile.samsung.com can",
+   "  remotely unlock the phone once you're back in the Samsung account.",
+   "Recover the Google account at",
+   "  https://accounts.google.com/signin/recovery - use the phone number",
+   "  and a familiar device; the dead email is not required.",
+   "Check backups: https://www.google.com/android/find and",
+   "  https://photos.google.com (Google Photos backup).",
+   "Proof of ownership / last resort: Samsung support with receipt + IMEI."
+  ]
+ },
+ "backups": {
+  "apple": [
+   "iCloud Backup  -> https://www.icloud.com (Photos) + Settings once in.",
+   "iCloud Photos  -> syncs automatically if it was ever turned on.",
+   "Computer backup-> a Mac (Finder) or PC (iTunes/Apple Devices app) you",
+   "                 synced with before may hold a full local backup.",
+   "Old backups can live on any computer the phone was plugged into."
+  ],
+  "samsung": [
+   "Google Photos  -> https://photos.google.com (auto-backup, very common).",
+   "Google Drive   -> https://drive.google.com (app data, some media).",
+   "Samsung Cloud  -> via the Samsung account (varies by region/model).",
+   "Computer       -> Samsung Smart Switch backups on a PC/Mac, if used."
+  ]
+ },
+ "connect": {
+  "apple": [
+   "REQUIRES the iPhone to be UNLOCKED - this is the on-device approval.",
+   "Plug the iPhone into a Mac or PC with a cable.",
+   "On the phone, tap 'Trust This Computer' and enter the passcode.",
+   "  (A locked phone cannot show or accept this prompt - that's the point.)",
+   "Mac: open Finder -> select the iPhone -> 'Back Up Now'.",
+   "PC : open the Apple Devices app (or iTunes) -> Back Up.",
+   "Photos can also be imported via the Photos app / 'Import' once trusted."
+  ],
+  "samsung": [
+   "REQUIRES the phone to be UNLOCKED - this is the on-device approval.",
+   "Plug the phone into a computer with a cable.",
+   "On the phone, tap the USB notification -> choose 'File Transfer (MTP)'.",
+   "  (This prompt only appears once the phone is unlocked.)",
+   "Copy DCIM/ and other folders off with your file explorer.",
+   "Or use Samsung Smart Switch (desktop) for a full backup.",
+   "Advanced: USB debugging + adb also needs an on-device 'Allow' tap."
+  ]
+ },
+ "ownership_fields": [
+  "Owner name",
+  "Old / account email",
+  "Phone number on account",
+  "Carrier",
+  "Approx. purchase date",
+  "Device model",
+  "IMEI",
+  "Serial number"
+ ]
+}

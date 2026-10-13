@@ -31,6 +31,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import platform
 import re
@@ -961,6 +962,26 @@ def print_identify(imei: str | None, serial: str | None) -> int:
     return 0 if ok else 1
 
 
+def knowledge_as_dict() -> dict:
+    """The device + symptom knowledge base as plain JSON-able data (used by the app)."""
+    def devs(d):
+        return sorted(d) if d is not None else None
+    return {
+        "devices": DEVICES,
+        "symptoms": [
+            {
+                "key": s.key, "title": s.title, "keywords": s.keywords, "devices": devs(s.devices),
+                "causes": [
+                    {"name": c.name, "likelihood": c.likelihood, "fixes": c.fixes,
+                     "devices": devs(c.devices), "warning": c.warning}
+                    for c in s.causes
+                ],
+            }
+            for s in SYMPTOMS
+        ],
+    }
+
+
 def print_list() -> None:
     _heading("Device types")
     for device, kws in DEVICES.items():
@@ -995,6 +1016,9 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("list", help="show known device types and symptoms")
 
+    p_export = sub.add_parser("export-json", help="write the knowledge base as JSON (for the app)")
+    p_export.add_argument("path", nargs="?", default="app/assets/knowledge.json")
+
     args = parser.parse_args(argv)
 
     if args.command == "scan":
@@ -1027,6 +1051,20 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list":
         print_list()
+        return 0
+
+    if args.command == "export-json":
+        with open(args.path, "w", encoding="utf-8") as fh:
+            json.dump(knowledge_as_dict(), fh, indent=1, ensure_ascii=False)
+            fh.write("\n")
+        print(f"Wrote {args.path}")
+        # Also emit the account-recovery data (from phone_info) next to it.
+        recovery_path = os.path.join(os.path.dirname(args.path) or ".", "recovery.json")
+        from phone_info import recovery_as_dict
+        with open(recovery_path, "w", encoding="utf-8") as fh:
+            json.dump(recovery_as_dict(), fh, indent=1, ensure_ascii=False)
+            fh.write("\n")
+        print(f"Wrote {recovery_path}")
         return 0
 
     parser.print_help()

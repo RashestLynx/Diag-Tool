@@ -214,6 +214,33 @@ def build_ownership_sheet(args: argparse.Namespace) -> str:
     return "\n".join(out)
 
 
+def recovery_as_dict() -> dict:
+    """The account-recovery knowledge base as plain JSON-able data (for the app).
+
+    Keeps the same content the CLI prints, so the app's Recovery tab and this
+    script stay in step.
+    """
+    return {
+        "services": {
+            platform: [{"name": name, "url": url} for name, url in entries]
+            for platform, entries in RECOVERY_SERVICES.items()
+        },
+        "checklists": CHECKLISTS,
+        "backups": BACKUP_GUIDE,
+        "connect": CONNECT_GUIDE,
+        "ownership_fields": [
+            "Owner name",
+            "Old / account email",
+            "Phone number on account",
+            "Carrier",
+            "Approx. purchase date",
+            "Device model",
+            "IMEI",
+            "Serial number",
+        ],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--imei", help="15-digit IMEI to validate and break down")
