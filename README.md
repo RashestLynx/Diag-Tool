@@ -12,12 +12,18 @@ Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 
 ## Download
 
-Latest builds (rebuilt automatically on every push):
+**Stable release — v1.0:**
 
-- **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/latest/download/diag-tool-android.apk
-- **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/latest/download/diag-tool-windows.zip
-- **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/latest/download/diag-tool-macos.zip
-- **All releases:** https://github.com/RashestLynx/Diag-Tool/releases/latest
+- **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-android.apk
+- **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-windows.zip
+- **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-macos.zip
+
+**Latest build** (rebuilt automatically on every push):
+
+- **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-android.apk
+- **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-windows.zip
+- **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-macos.zip
+- **All releases:** https://github.com/RashestLynx/Diag-Tool/releases
 
 > The desktop/Android builds are unsigned, so your OS will show an
 > "unknown developer" prompt the first time. iPhone needs an Apple-signed
