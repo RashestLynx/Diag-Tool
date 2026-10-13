@@ -1315,6 +1315,108 @@ _MISFIRE_MIDS = ["MONITOR_MISFIRE_GENERAL"] + [
 ]
 
 
+def analyze_obd(readings: dict, dtcs: list) -> list:
+    """Correlate live sensor readings and stored DTCs into likely root causes.
+
+    `readings` maps PID name -> numeric value (fuel trims in %, temps in C,
+    volts in V). `dtcs` is a list of code strings. Returns a list of dicts:
+    {severity, title, cause, suggest}. Pure/generic guidance, not a verdict.
+    """
+    out = []
+
+    def num(name):
+        v = readings.get(name)
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    codes = {c.upper() for c in dtcs}
+
+    # --- Fuel trims: the single most useful live diagnostic ---
+    stft1, ltft1 = num("SHORT_FUEL_TRIM_1"), num("LONG_FUEL_TRIM_1")
+    total1 = sum(v for v in (stft1, ltft1) if v is not None) if (stft1 is not None or ltft1 is not None) else None
+    if total1 is not None and total1 >= 10:
+        out.append({
+            "severity": "problem", "title": f"Running lean (bank 1, trims +{total1:.0f}%)",
+            "cause": "The engine is adding fuel to compensate - usually an unmetered "
+                     "air (vacuum/intake) leak, a dirty MAF sensor, a weak fuel pump/"
+                     "filter, or an exhaust leak ahead of the O2 sensor.",
+            "suggest": "Smoke-test the intake for leaks, clean the MAF, and check fuel "
+                       "pressure. Lean + a misfire points strongly at a vacuum leak."})
+    elif total1 is not None and total1 <= -10:
+        out.append({
+            "severity": "problem", "title": f"Running rich (bank 1, trims {total1:.0f}%)",
+            "cause": "The engine is pulling fuel out - often a leaking injector, high "
+                     "fuel pressure, a stuck O2 sensor, or a very dirty air filter.",
+            "suggest": "Check fuel pressure/regulator and injector balance; inspect the "
+                       "air filter; verify the upstream O2 sensor switches."})
+
+    # --- Temperatures ---
+    coolant = num("COOLANT_TEMP")
+    if coolant is not None and coolant >= 105:
+        out.append({
+            "severity": "problem", "title": f"Coolant hot ({coolant:.0f} C)",
+            "cause": "Overheating - low coolant, a stuck thermostat, a weak water pump, "
+                     "a failing cooling fan, or a blocked radiator.",
+            "suggest": "Stop and let it cool; check coolant level and that the fan runs."})
+    elif coolant is not None and 0 < coolant < 60 and (num("RUN_TIME") or 0) > 300:
+        out.append({
+            "severity": "warn", "title": f"Engine not reaching temperature ({coolant:.0f} C)",
+            "cause": "After warming up this is usually a thermostat stuck open "
+                     "(matches code P0128).",
+            "suggest": "Replace the thermostat; it also hurts fuel economy and heater output."})
+
+    # --- Charging / battery ---
+    volts = num("CONTROL_MODULE_VOLTAGE")
+    if volts is not None and 0 < volts < 13.0 and (num("RPM") or 0) > 500:
+        out.append({
+            "severity": "warn", "title": f"Low charging voltage ({volts:.1f} V running)",
+            "cause": "With the engine running this should be ~13.5-14.7 V. Low means a "
+                     "weak alternator, a bad voltage regulator, or a loose belt.",
+            "suggest": "Load-test the alternator and battery; check the drive belt."})
+
+    # --- Misfire codes -> specific cylinder guidance ---
+    for n in range(1, 11):
+        if f"P030{n}" in codes or f"P03{n:02d}" in codes:
+            out.append({
+                "severity": "problem", "title": f"Misfire on cylinder {n}",
+                "cause": "That cylinder isn't firing cleanly - coil, spark plug, "
+                         "injector, or low compression on cylinder " + str(n) + ".",
+                "suggest": f"Swap the coil/plug for cyl {n} with a neighbour; if the "
+                           "misfire follows the part, replace it. Else check the "
+                           "injector and do a compression test."})
+    if "P0300" in codes:
+        out.append({
+            "severity": "problem", "title": "Random/multiple-cylinder misfire",
+            "cause": "Affects several cylinders - a vacuum leak, weak fuel pressure, "
+                     "bad fuel, or worn plugs across the board.",
+            "suggest": "Check fuel pressure and for vacuum leaks before parts-swapping; "
+                       "high lean fuel trims here confirm a vacuum leak."})
+
+    # --- Catalyst ---
+    if "P0420" in codes or "P0430" in codes:
+        out.append({
+            "severity": "warn", "title": "Catalytic converter efficiency low",
+            "cause": "Either a worn catalytic converter or a lazy downstream O2 sensor "
+                     "(the cheaper thing to rule out first).",
+            "suggest": "Verify the rear O2 sensor switches correctly before buying a cat."})
+
+    # Any stored code we have a detailed fix for and haven't covered above.
+    for c in sorted(codes):
+        if c in DTC_FIXES and not any(c[-1] in o["title"] for o in out):
+            meaning, fix = DTC_FIXES[c]
+            out.append({"severity": "info", "title": f"{c}: {meaning}",
+                        "cause": "Stored trouble code.", "suggest": fix})
+
+    if not out:
+        out.append({"severity": "info", "title": "No obvious fault in the readable data",
+                    "cause": "Live sensors and stored codes look within normal range.",
+                    "suggest": "If a symptom persists, capture a drive with --watch --log "
+                               "and graph it to catch intermittent events."})
+    return out
+
+
 def _obd_connect(port: str | None):
     """Import python-OBD and open a connection. Returns (obd, conn) or (None, None)."""
     try:
@@ -1335,12 +1437,12 @@ def _obd_connect(port: str | None):
     return obd, conn
 
 
-def _print_dtcs(obd, conn) -> int:
-    """Print stored DTCs with meanings/fixes. Returns the count."""
+def _print_dtcs(obd, conn) -> list:
+    """Print stored DTCs with meanings/fixes. Returns the list of code strings."""
     codes = conn.query(obd.commands.GET_DTC).value or []
     if not codes:
         print("  Trouble codes  : none stored.")
-        return 0
+        return []
     print(f"  Trouble codes  : {len(codes)} stored")
     for code, desc in codes:
         print(f"\n  {code}  [{describe_dtc(code)}]")
@@ -1353,7 +1455,7 @@ def _print_dtcs(obd, conn) -> int:
         else:
             print("      Fix: look up this exact code for your make/model; a")
             print("           scan-tool live-data check pinpoints the part.")
-    return len(codes)
+    return [code for code, _ in codes]
 
 
 def _print_status(obd, conn) -> None:
@@ -1376,8 +1478,10 @@ def _print_status(obd, conn) -> None:
             print(f"      {name:<28}: {state}")
 
 
-def car_report(port: str | None, live: bool, monitors: bool, freeze: bool) -> int:
-    """Full read: VIN, DTCs, (optionally) readiness, freeze-frame and live data."""
+def car_report(port: str | None, live: bool, monitors: bool, freeze: bool,
+               all_sensors: bool = False) -> int:
+    """Full read: VIN, DTCs, (optionally) readiness, freeze-frame, live data,
+    and a root-cause analysis of what the readings + codes point to."""
     obd, conn = _obd_connect(port)
     if conn is None:
         return 1 if obd is not None else 2
@@ -1387,7 +1491,7 @@ def car_report(port: str | None, live: bool, monitors: bool, freeze: bool) -> in
     vin = conn.query(obd.commands.VIN)
     if vin.value:
         print(f"  VIN            : {vin.value}")
-    _print_dtcs(obd, conn)
+    dtcs = _print_dtcs(obd, conn)
 
     if monitors:
         print("\nReadiness / monitors")
@@ -1405,25 +1509,42 @@ def car_report(port: str | None, live: bool, monitors: bool, freeze: bool) -> in
         else:
             print("  No freeze-frame code stored.")
 
-    if live:
-        print("\nLive data")
+    readings = {}
+    if live or all_sensors:
+        # `--all` reads every PID the ECU reports supporting; otherwise the
+        # curated headline set.
+        if all_sensors:
+            cmds = [(c.name, c) for c in sorted(conn.supported_commands, key=lambda c: c.name)
+                    if getattr(c, "mode", None) == 1]
+            print(f"\nAll live sensors ({len(cmds)} supported)")
+        else:
+            cmds = [(n, getattr(obd.commands, n, None)) for n in _LIVE_PIDS]
+            print("\nLive data")
         print("-" * 9)
         shown = 0
-        for name in _LIVE_PIDS:
-            cmd = getattr(obd.commands, name, None)
+        for name, cmd in cmds:
             if cmd is None or not conn.supports(cmd):
                 continue
             r = conn.query(cmd)
             if r.is_null():
                 continue
-            print(f"  {name:<24}: {r.value}")
+            print(f"  {name:<26}: {r.value}")
+            readings[name] = getattr(r.value, "magnitude", r.value)
             shown += 1
         if shown == 0:
             print("  (no live PIDs available - is the engine running?)")
 
+    print("\nWhat's likely going on")
+    print("-" * 22)
+    for f in analyze_obd(readings, dtcs):
+        tag = {"problem": "[!!]", "warn": "[warn]", "info": "[ i]"}.get(f["severity"], "[ i]")
+        print(f"\n  {tag} {f['title']}")
+        print(f"      Cause : {f['cause']}")
+        print(f"      Check : {f['suggest']}")
+
     conn.close()
-    print("\n  Note: codes/data point to symptoms, not always the root cause.")
-    print("  Confirm with live data before replacing parts.")
+    print("\n  Note: this points to likely causes from the readable data - confirm")
+    print("  with live tests before replacing parts.")
     return 0
 
 
@@ -1753,6 +1874,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="--watch: record each sample to this CSV for graphing")
     p.add_argument("--graph", metavar="CSV",
                    help="offline: turn a logged OBD CSV into an HTML chart dashboard")
+    p.add_argument("--all", action="store_true", dest="all_sensors",
+                   help="--car: read EVERY live sensor the ECU reports supporting")
     p.add_argument("--net", metavar="HOST[:PORT]",
                    help="connect adb over the network first (Android TV / Fire TV "
                         "/ boxes); e.g. --net 192.168.1.50:5555")
@@ -1821,12 +1944,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.watch:
             return car_watch(args.port, args.interval, args.duration, args.log)
         # Default to a full report; --live/--monitors/--freeze narrow or extend it.
-        any_car_action = args.live or args.monitors or args.freeze
+        any_car_action = args.live or args.monitors or args.freeze or args.all_sensors
         return car_report(
             args.port,
             live=args.live or not any_car_action,
             monitors=args.monitors or not any_car_action,
             freeze=args.freeze or not any_car_action,
+            all_sensors=args.all_sensors,
         )
 
     # Network adb for Android TVs / boxes / head-units.

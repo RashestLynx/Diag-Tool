@@ -110,6 +110,43 @@ class ObdGraphTests(unittest.TestCase):
         self.assertIn("points=", svg)
 
 
+class AnalyzeObdTests(unittest.TestCase):
+    def titles(self, findings):
+        return " | ".join(f["title"] for f in findings)
+
+    def test_lean_fuel_trims_flag_vacuum_leak(self):
+        f = dx.analyze_obd({"SHORT_FUEL_TRIM_1": 8, "LONG_FUEL_TRIM_1": 12}, [])
+        self.assertIn("lean", self.titles(f).lower())
+        self.assertTrue(any("vacuum" in x["cause"].lower() for x in f))
+
+    def test_rich_fuel_trims(self):
+        f = dx.analyze_obd({"SHORT_FUEL_TRIM_1": -6, "LONG_FUEL_TRIM_1": -9}, [])
+        self.assertIn("rich", self.titles(f).lower())
+
+    def test_overheating(self):
+        f = dx.analyze_obd({"COOLANT_TEMP": 112}, [])
+        self.assertIn("hot", self.titles(f).lower())
+
+    def test_low_charging_voltage_when_running(self):
+        f = dx.analyze_obd({"CONTROL_MODULE_VOLTAGE": 12.1, "RPM": 900}, [])
+        self.assertTrue(any("charging" in x["title"].lower() for x in f))
+
+    def test_misfire_code_maps_to_cylinder(self):
+        f = dx.analyze_obd({}, ["P0303"])
+        self.assertIn("cylinder 3", self.titles(f).lower())
+
+    def test_catalyst_code(self):
+        f = dx.analyze_obd({}, ["P0420"])
+        self.assertTrue(any("catalytic" in x["title"].lower() for x in f))
+
+    def test_clean_readings_report_nothing_wrong(self):
+        f = dx.analyze_obd({"COOLANT_TEMP": 88, "SHORT_FUEL_TRIM_1": 1,
+                            "LONG_FUEL_TRIM_1": -2, "CONTROL_MODULE_VOLTAGE": 14.1,
+                            "RPM": 800}, [])
+        self.assertEqual(len(f), 1)
+        self.assertIn("No obvious fault", f[0]["title"])
+
+
 class CliOfflineTests(unittest.TestCase):
     def test_apple_model_cli(self):
         self.assertEqual(dx.main(["--apple-model", "iPhone12,1"]), 0)
