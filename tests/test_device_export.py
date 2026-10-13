@@ -87,6 +87,29 @@ class AppReferenceJsonTests(unittest.TestCase):
                          "run `python diag_tool.py export-json` to refresh the app's copy")
 
 
+class ObdGraphTests(unittest.TestCase):
+    def test_render_html_has_a_chart_per_numeric_column(self):
+        headers = ["elapsed_s", "RPM", "COOLANT_TEMP", "LABEL"]
+        rows = [[0, 800, 60, "a"], [1, 1500, 72, "b"], [2, 2200, 85, "c"]]
+        html = dx.render_obd_html(headers, rows)
+        # RPM and COOLANT_TEMP are numeric -> 2 charts; LABEL is text -> skipped.
+        self.assertEqual(html.count("<polyline"), 2)
+        self.assertIn("RPM", html)
+        self.assertIn("COOLANT_TEMP", html)
+        self.assertIn("<!doctype html>", html)
+
+    def test_render_html_handles_missing_values(self):
+        headers = ["elapsed_s", "O2"]
+        rows = [[0, ""], [1, 0.45], [2, 0.9]]  # one blank cell
+        html = dx.render_obd_html(headers, rows)
+        self.assertIn("O2", html)  # still charts the column it can
+
+    def test_svg_points_scale_within_viewbox(self):
+        svg = dx._svg_line_chart("x", [0, 1, 2], [10, 20, 30], width=100, height=100)
+        self.assertIn("<polyline", svg)
+        self.assertIn("points=", svg)
+
+
 class CliOfflineTests(unittest.TestCase):
     def test_apple_model_cli(self):
         self.assertEqual(dx.main(["--apple-model", "iPhone12,1"]), 0)

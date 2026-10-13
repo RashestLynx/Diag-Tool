@@ -1296,12 +1296,22 @@ def _decode_dtc_prefix(code: str) -> str:
 # Live PIDs worth showing, in a sensible dashboard order. Each is a python-OBD
 # command name; missing ones on a given car are skipped automatically.
 _LIVE_PIDS = [
-    "RPM", "SPEED", "ENGINE_LOAD", "COOLANT_TEMP", "INTAKE_TEMP",
-    "THROTTLE_POS", "MAF", "INTAKE_PRESSURE", "TIMING_ADVANCE",
-    "SHORT_FUEL_TRIM_1", "LONG_FUEL_TRIM_1", "SHORT_FUEL_TRIM_2",
-    "LONG_FUEL_TRIM_2", "FUEL_PRESSURE", "FUEL_LEVEL", "FUEL_RATE",
-    "O2_B1S1", "O2_B1S2", "COMMANDED_EQUIV_RATIO", "CATALYST_TEMP_B1S1",
-    "CONTROL_MODULE_VOLTAGE", "RUN_TIME", "DISTANCE_W_MIL", "AMBIANT_AIR_TEMP",
+    "RPM", "SPEED", "ENGINE_LOAD", "ABSOLUTE_LOAD", "COOLANT_TEMP",
+    "INTAKE_TEMP", "OIL_TEMP", "THROTTLE_POS", "RELATIVE_THROTTLE_POS",
+    "ACCELERATOR_POS_D", "ACCELERATOR_POS_E", "MAF", "INTAKE_PRESSURE",
+    "BAROMETRIC_PRESSURE", "TIMING_ADVANCE", "SHORT_FUEL_TRIM_1",
+    "LONG_FUEL_TRIM_1", "SHORT_FUEL_TRIM_2", "LONG_FUEL_TRIM_2",
+    "FUEL_PRESSURE", "FUEL_RAIL_PRESSURE_ABS", "FUEL_LEVEL", "FUEL_RATE",
+    "COMMANDED_EGR", "EGR_ERROR", "EVAP_VAPOR_PRESSURE", "O2_B1S1", "O2_B1S2",
+    "O2_B2S1", "O2_B2S2", "COMMANDED_EQUIV_RATIO", "CATALYST_TEMP_B1S1",
+    "CATALYST_TEMP_B2S1", "CONTROL_MODULE_VOLTAGE", "RUN_TIME",
+    "DISTANCE_W_MIL", "DISTANCE_SINCE_DTC_CLEAR", "WARMUPS_SINCE_DTC_CLEAR",
+    "AMBIANT_AIR_TEMP",
+]
+
+# Mode 06 on-board monitor commands for misfires (per-cylinder where supported).
+_MISFIRE_MIDS = ["MONITOR_MISFIRE_GENERAL"] + [
+    f"MONITOR_MISFIRE_CYLINDER_{n}" for n in range(1, 11)
 ]
 
 
@@ -1383,6 +1393,8 @@ def car_report(port: str | None, live: bool, monitors: bool, freeze: bool) -> in
         print("\nReadiness / monitors")
         print("-" * 20)
         _print_status(obd, conn)
+        print("\n  Misfire monitors (Mode 06):")
+        _print_misfires(obd, conn)
 
     if freeze:
         print("\nFreeze frame (conditions when the code set)")
@@ -1412,6 +1424,175 @@ def car_report(port: str | None, live: bool, monitors: bool, freeze: bool) -> in
     conn.close()
     print("\n  Note: codes/data point to symptoms, not always the root cause.")
     print("  Confirm with live data before replacing parts.")
+    return 0
+
+
+def _print_misfires(obd, conn) -> None:
+    """Mode 06 misfire monitor results, per cylinder where the car supports it."""
+    any_shown = False
+    for name in _MISFIRE_MIDS:
+        cmd = getattr(obd.commands, name, None)
+        if cmd is None or not conn.supports(cmd):
+            continue
+        r = conn.query(cmd)
+        if r.is_null():
+            continue
+        label = name.replace("MONITOR_MISFIRE_", "").replace("_", " ").title()
+        # A MonitorTest has .value, .min, .max and .passed on recent python-OBD.
+        tests = r.value if isinstance(r.value, list) else [r.value]
+        for t in tests:
+            val = getattr(t, "value", t)
+            passed = getattr(t, "passed", None)
+            mark = "" if passed is None else ("  [ok]" if passed else "  [FAIL]")
+            print(f"      {label:<14}: {val}{mark}")
+            any_shown = True
+    if not any_shown:
+        print("      (no Mode 06 misfire data - many cars expose this only via")
+        print("       manufacturer-specific monitors; check P030x codes instead.)")
+
+
+def car_watch(port: str | None, interval: float, duration: float,
+              log_path: str | None) -> int:
+    """Stream live data on a loop, printing a refreshing snapshot and optionally
+    logging every sample to a CSV for later graphing."""
+    obd, conn = _obd_connect(port)
+    if conn is None:
+        return 1 if obd is not None else 2
+
+    cmds = []
+    for name in _LIVE_PIDS:
+        cmd = getattr(obd.commands, name, None)
+        if cmd is not None and conn.supports(cmd):
+            cmds.append((name, cmd))
+    if not cmds:
+        print("No live PIDs supported/returning data. Is the engine running?")
+        conn.close()
+        return 1
+
+    writer = fh = None
+    if log_path:
+        fh = open(log_path, "w", newline="", encoding="utf-8")
+        import csv
+        writer = csv.writer(fh)
+        writer.writerow(["elapsed_s"] + [n for n, _ in cmds])
+
+    print(f"Streaming {len(cmds)} PIDs every {interval}s for {duration}s "
+          f"(Ctrl-C to stop){' -> ' + log_path if log_path else ''}")
+    import time as _time
+    start = _time.time()
+    try:
+        while _time.time() - start < duration:
+            elapsed = round(_time.time() - start, 2)
+            row = [elapsed]
+            for name, cmd in cmds:
+                r = conn.query(cmd)
+                v = None if r.is_null() else getattr(r.value, "magnitude", r.value)
+                row.append(v)
+            if writer:
+                writer.writerow(row)
+            # Compact rolling readout of a few headline values.
+            head = ", ".join(
+                f"{n}={row[i + 1]}" for i, (n, _) in enumerate(cmds)
+                if n in ("RPM", "SPEED", "COOLANT_TEMP", "TIMING_ADVANCE",
+                         "SHORT_FUEL_TRIM_1", "ENGINE_LOAD")
+            )
+            print(f"  t={elapsed:>6}s  {head}")
+            _time.sleep(interval)
+    except KeyboardInterrupt:
+        print("\nStopped.")
+    finally:
+        if fh:
+            fh.close()
+            print(f"Logged to {log_path}. Graph it with: "
+                  f"python device_export.py --graph {log_path}")
+        conn.close()
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Offline: turn a logged OBD CSV into a self-contained HTML chart dashboard.
+# Pure stdlib + inline SVG, so it needs no plotting library and no car.
+# ---------------------------------------------------------------------------
+def _svg_line_chart(label: str, xs: list[float], ys: list[float],
+                    width: int = 680, height: int = 160) -> str:
+    pad = 32
+    pts = [(x, y) for x, y in zip(xs, ys) if y is not None]
+    if len(pts) < 2:
+        return f"<div class='chart'><h3>{label}</h3><p>no data</p></div>"
+    xmin, xmax = pts[0][0], pts[-1][0]
+    ymin = min(p[1] for p in pts)
+    ymax = max(p[1] for p in pts)
+    xspan = (xmax - xmin) or 1
+    yspan = (ymax - ymin) or 1
+
+    def sx(x: float) -> float:
+        return pad + (x - xmin) / xspan * (width - 2 * pad)
+
+    def sy(y: float) -> float:
+        return height - pad - (y - ymin) / yspan * (height - 2 * pad)
+
+    poly = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in pts)
+    return (
+        f"<div class='chart'><h3>{label}</h3>"
+        f"<svg viewBox='0 0 {width} {height}' preserveAspectRatio='none'>"
+        f"<polyline fill='none' stroke='#2e7d6b' stroke-width='2' points='{poly}'/>"
+        f"<text x='{pad}' y='12' class='lbl'>{ymax:g}</text>"
+        f"<text x='{pad}' y='{height - pad + 12}' class='lbl'>{ymin:g}</text>"
+        f"<text x='{width - pad}' y='{height - 6}' class='lbl' text-anchor='end'>"
+        f"{xmax:g}s</text></svg></div>"
+    )
+
+
+def render_obd_html(headers: list[str], rows: list[list]) -> str:
+    """Build a standalone HTML dashboard (one line chart per numeric column)."""
+    xs = [float(r[0]) for r in rows] if rows else []
+    charts = []
+    for ci in range(1, len(headers)):
+        ys: list[float | None] = []
+        numeric = False
+        for r in rows:
+            try:
+                ys.append(float(r[ci]))
+                numeric = True
+            except (ValueError, TypeError, IndexError):
+                ys.append(None)
+        if numeric:
+            charts.append(_svg_line_chart(headers[ci], xs, ys))
+    body = "\n".join(charts) if charts else "<p>No numeric data columns found.</p>"
+    return (
+        "<!doctype html><html><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+        "<title>OBD-II log</title><style>"
+        "body{font-family:system-ui,sans-serif;margin:16px;background:#faf9f7;color:#1a1a1a}"
+        "h1{font-size:20px}.chart{background:#fff;border:1px solid #e3e3e3;border-radius:12px;"
+        "padding:10px 14px;margin:12px 0}.chart h3{margin:0 0 6px;font-size:14px}"
+        ".chart svg{width:100%;height:160px}.lbl{fill:#888;font-size:10px}"
+        "@media(prefers-color-scheme:dark){body{background:#1a1a1a;color:#eee}"
+        ".chart{background:#262626;border-color:#333}}"
+        "</style></head><body>"
+        f"<h1>OBD-II session - {len(rows)} samples, {len(charts)} signals</h1>"
+        f"{body}</body></html>"
+    )
+
+
+def car_graph(csv_path: str, out_path: str | None) -> int:
+    """Read a logged OBD CSV and write an HTML chart dashboard next to it."""
+    import csv
+    try:
+        with open(csv_path, newline="", encoding="utf-8") as fh:
+            reader = csv.reader(fh)
+            headers = next(reader, [])
+            rows = [r for r in reader if r]
+    except OSError as exc:
+        print(f"Could not read {csv_path}: {exc}")
+        return 1
+    if not headers:
+        print(f"{csv_path} is empty.")
+        return 1
+    out = out_path or (csv_path.rsplit(".", 1)[0] + ".html")
+    with open(out, "w", encoding="utf-8") as fh:
+        fh.write(render_obd_html(headers, rows))
+    print(f"Wrote chart dashboard -> {out}  (open it in any browser)")
     return 0
 
 
@@ -1562,6 +1743,16 @@ def main(argv: list[str] | None = None) -> int:
                    help="--car: clear stored codes / reset the check-engine light")
     p.add_argument("--yes", action="store_true",
                    help="skip the confirmation prompt for --clear")
+    p.add_argument("--watch", action="store_true",
+                   help="--car: stream live data on a loop (use with --log to record)")
+    p.add_argument("--interval", type=float, default=0.5,
+                   help="--watch sample interval in seconds (default 0.5)")
+    p.add_argument("--duration", type=float, default=60.0,
+                   help="--watch duration in seconds (default 60)")
+    p.add_argument("--log", metavar="FILE",
+                   help="--watch: record each sample to this CSV for graphing")
+    p.add_argument("--graph", metavar="CSV",
+                   help="offline: turn a logged OBD CSV into an HTML chart dashboard")
     p.add_argument("--net", metavar="HOST[:PORT]",
                    help="connect adb over the network first (Android TV / Fire TV "
                         "/ boxes); e.g. --net 192.168.1.50:5555")
@@ -1607,6 +1798,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  Manufacture date: {apple_serial_date(args.apple_serial_date)}")
         return 0
 
+    # Offline: graph a previously logged OBD CSV (no car/adapter needed).
+    if args.graph:
+        return car_graph(args.graph, args.out if str(args.out) != "export" else None)
+
     # This computer: no device, no protocol - reads the local OS.
     if args.computer:
         if args.diagnose:
@@ -1623,6 +1818,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.car:
         if args.clear:
             return car_clear(args.port, args.yes)
+        if args.watch:
+            return car_watch(args.port, args.interval, args.duration, args.log)
         # Default to a full report; --live/--monitors/--freeze narrow or extend it.
         any_car_action = args.live or args.monitors or args.freeze
         return car_report(
