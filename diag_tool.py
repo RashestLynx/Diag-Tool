@@ -1065,6 +1065,13 @@ def main(argv: list[str] | None = None) -> int:
             json.dump(recovery_as_dict(), fh, indent=1, ensure_ascii=False)
             fh.write("\n")
         print(f"Wrote {recovery_path}")
+        # Device-free reference data (model maps, car codes) for the app.
+        reference_path = os.path.join(os.path.dirname(args.path) or ".", "reference.json")
+        from device_export import reference_as_dict
+        with open(reference_path, "w", encoding="utf-8") as fh:
+            json.dump(reference_as_dict(), fh, indent=1, ensure_ascii=False)
+            fh.write("\n")
+        print(f"Wrote {reference_path}")
         return 0
 
     parser.print_help()

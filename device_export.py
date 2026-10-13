@@ -1019,6 +1019,23 @@ DTC_FIXES = {
 }
 
 
+def reference_as_dict() -> dict:
+    """Device-free reference data for the app (model maps, car codes, serial rules)."""
+    return {
+        "apple_models": {
+            ptype: {"model": name, "soc": soc}
+            for ptype, (name, soc) in APPLE_MODELS.items()
+        },
+        "qcom_platforms": QCOM_PLATFORMS,
+        "dtc_fixes": {
+            code: {"meaning": meaning, "fix": fix}
+            for code, (meaning, fix) in DTC_FIXES.items()
+        },
+        "apple_year_alphabet": _APPLE_YEAR_ALPHABET,
+        "apple_week_alphabet": _APPLE_WEEK_ALPHABET,
+    }
+
+
 def _decode_dtc_prefix(code: str) -> str:
     systems = {"P": "Powertrain", "C": "Chassis", "B": "Body", "U": "Network"}
     if not code:

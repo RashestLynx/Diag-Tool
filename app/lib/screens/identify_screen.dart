@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../identify.dart';
+import '../reference/reference.dart';
 import '../widgets.dart';
 
 class IdentifyScreen extends StatefulWidget {
-  const IdentifyScreen({super.key});
+  const IdentifyScreen({super.key, required this.reference});
+  final Reference reference;
 
   @override
   State<IdentifyScreen> createState() => _IdentifyScreenState();
@@ -15,13 +17,21 @@ class IdentifyScreen extends StatefulWidget {
 class _IdentifyScreenState extends State<IdentifyScreen> {
   final _imei = TextEditingController();
   final _serial = TextEditingController();
+  final _productType = TextEditingController();
+  final _socCode = TextEditingController();
   ImeiInfo? _imeiInfo;
   SerialInfo? _serialInfo;
+  AppleModel? _appleModel;
+  bool _appleModelSearched = false;
+  String? _socName;
+  bool _socSearched = false;
 
   @override
   void dispose() {
     _imei.dispose();
     _serial.dispose();
+    _productType.dispose();
+    _socCode.dispose();
     super.dispose();
   }
 
@@ -77,8 +87,133 @@ class _IdentifyScreenState extends State<IdentifyScreen> {
         const SizedBox(height: 16),
         if (_imeiInfo != null) _imeiCard(context, _imeiInfo!),
         if (_serialInfo != null) _serialCard(context, _serialInfo!),
+        const Divider(height: 36),
+        _appleModelLookup(context),
+        const Divider(height: 36),
+        _androidChipLookup(context),
       ],
     );
+  }
+
+  Widget _androidChipLookup(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Android chip lookup', style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Text('Enter the Qualcomm platform code (the "ro.board.platform" value, '
+            'e.g. kona) to see the Snapdragon chip name.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _socCode,
+                onSubmitted: (_) => _lookupSoc(),
+                decoration: InputDecoration(
+                  labelText: 'Platform code (e.g. kona)',
+                  filled: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            FilledButton(onPressed: _lookupSoc, child: const Text('Look up')),
+          ],
+        ),
+        if (_socSearched) ...[
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _socName == null
+                  ? Text('Not in the local map. Many phones use MediaTek, Exynos, '
+                      'Tensor or other chips - check Settings > About phone.',
+                      style: TextStyle(color: scheme.onSurfaceVariant))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SpecRow('Platform code', _socCode.text.trim().toLowerCase()),
+                        SpecRow('Chip (SoC)', _socName!),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _lookupSoc() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _socSearched = true;
+      _socName = widget.reference.qcomPlatforms[_socCode.text.trim().toLowerCase()];
+    });
+  }
+
+  Widget _appleModelLookup(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Apple model lookup', style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Text('Enter an Apple "product type" (iPhone Settings > General > About, or '
+            'from device_export.py) to see the model name and chip.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _productType,
+                textCapitalization: TextCapitalization.sentences,
+                onSubmitted: (_) => _lookupModel(),
+                decoration: InputDecoration(
+                  labelText: 'Product type (e.g. iPhone14,5)',
+                  filled: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            FilledButton(onPressed: _lookupModel, child: const Text('Look up')),
+          ],
+        ),
+        if (_appleModelSearched) ...[
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _appleModel == null
+                  ? Text('Not in the local map. Cross-check at checkcoverage.apple.com.',
+                      style: TextStyle(color: scheme.onSurfaceVariant))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SpecRow('Product type', _appleModel!.productType),
+                        SpecRow('Model', _appleModel!.model),
+                        SpecRow('Chip (SoC)', _appleModel!.soc),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _lookupModel() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _appleModelSearched = true;
+      _appleModel = widget.reference.appleModel(_productType.text);
+    });
   }
 
   Widget _imeiCard(BuildContext context, ImeiInfo info) {
@@ -133,6 +268,7 @@ class _IdentifyScreenState extends State<IdentifyScreen> {
             const SizedBox(height: 8),
             SpecRow('Normalized', '${info.normalized}  (${info.normalized.length} chars)'),
             _check15(context, 'Apple-style serial', info.plausibleApple),
+            if (info.plausibleApple) _serialDateLine(context, info.normalized),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -155,6 +291,26 @@ class _IdentifyScreenState extends State<IdentifyScreen> {
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _serialDateLine(BuildContext context, String serial) {
+    final scheme = Theme.of(context).colorScheme;
+    final date = widget.reference.appleSerialDate(serial);
+    final text = date == null
+        ? 'Manufacture date: not derivable (new randomized serial) - use checkcoverage.apple.com.'
+        : 'If pre-2021: made around ${date.year}, week ${date.week}. '
+            'Newer serials are randomized, so this is meaningless for recent phones.';
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.event_outlined, size: 18, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodySmall)),
+        ],
       ),
     );
   }

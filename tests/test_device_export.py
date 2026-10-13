@@ -64,6 +64,16 @@ class DtcTests(unittest.TestCase):
         self.assertTrue(meaning and fix)
 
 
+class AppReferenceJsonTests(unittest.TestCase):
+    def test_reference_json_is_up_to_date(self):
+        import json
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "app", "assets", "reference.json"), encoding="utf-8") as fh:
+            on_disk = json.load(fh)
+        self.assertEqual(on_disk, json.loads(json.dumps(dx.reference_as_dict())),
+                         "run `python diag_tool.py export-json` to refresh the app's copy")
+
+
 class CliOfflineTests(unittest.TestCase):
     def test_apple_model_cli(self):
         self.assertEqual(dx.main(["--apple-model", "iPhone12,1"]), 0)

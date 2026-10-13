@@ -66,6 +66,7 @@ flutter:
   assets:
     - assets/knowledge.json
     - assets/recovery.json
+    - assets/reference.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -33,16 +33,21 @@ Three tabs:
   a builder for an ownership-proof sheet you can hand to Apple/Samsung support.
   This recovers the account you own - it does not remove anyone's lock.
 - **Identify** - validate an IMEI (checksum + make/model TAC) or a serial
-  number, with links to official lookup pages.
+  number, with links to official lookup pages. Also: Apple product-type ->
+  model + chip lookup, an Android Qualcomm platform-code -> Snapdragon lookup,
+  and a manufacture-date estimate for legacy Apple serials.
+- **Diagnose** also includes a **car trouble-code (OBD-II)** lookup: enter a
+  check-engine code like P0420 for its meaning and fix.
 
-The diagnosis advice lives in `assets/knowledge.json`, and the account-recovery
-guidance in `assets/recovery.json` - both generated from the project's Python
-code (`diag_tool.py` and `phone_info.py`) so the app and the command line stay
-in sync:
+The diagnosis advice (`assets/knowledge.json`), account-recovery guidance
+(`assets/recovery.json`) and device reference data (`assets/reference.json` -
+Apple model map, Qualcomm platforms, car codes) are all generated from the
+project's Python code (`diag_tool.py`, `phone_info.py`, `device_export.py`) so
+the app and the command line stay in sync:
 
 ```
 cd ..            # repo root
-python diag_tool.py export-json   # writes both knowledge.json and recovery.json
+python diag_tool.py export-json   # writes knowledge.json, recovery.json, reference.json
 ```
 
 ## Running and building

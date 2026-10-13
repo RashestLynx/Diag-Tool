@@ -4,6 +4,7 @@ import 'controller/controller_screen.dart';
 import 'knowledge.dart';
 import 'recovery/recovery.dart';
 import 'recovery/recovery_screen.dart';
+import 'reference/reference.dart';
 import 'screens/diagnose_screen.dart';
 import 'screens/identify_screen.dart';
 import 'screens/scan_screen.dart';
@@ -36,15 +37,16 @@ class _Home extends StatefulWidget {
 }
 
 class _HomeState extends State<_Home> {
-  late final Future<(Knowledge, Recovery)> _data =
-      Future.wait([Knowledge.load(), Recovery.load()]).then((r) => (r[0] as Knowledge, r[1] as Recovery));
+  late final Future<(Knowledge, Recovery, Reference)> _data =
+      Future.wait([Knowledge.load(), Recovery.load(), Reference.load()])
+          .then((r) => (r[0] as Knowledge, r[1] as Recovery, r[2] as Reference));
   int _tab = 0;
 
   static const _titles = ['Scan', 'Diagnose', 'Controller', 'Recovery', 'Identify'];
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<(Knowledge, Recovery)>(
+    return FutureBuilder<(Knowledge, Recovery, Reference)>(
       future: _data,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
@@ -56,13 +58,13 @@ class _HomeState extends State<_Home> {
             body: Center(child: Text('Failed to load: ${snap.error}')),
           );
         }
-        final (knowledge, recovery) = snap.data!;
+        final (knowledge, recovery, reference) = snap.data!;
         final screens = [
           ScanScreen(knowledge: knowledge),
-          DiagnoseScreen(knowledge: knowledge),
+          DiagnoseScreen(knowledge: knowledge, reference: reference),
           const ControllerScreen(),
           RecoveryScreen(recovery: recovery),
-          const IdentifyScreen(),
+          IdentifyScreen(reference: reference),
         ];
 
         // Phones get a bottom bar; wider screens (tablet/desktop) get a rail.

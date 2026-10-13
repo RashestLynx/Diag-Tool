@@ -1,0 +1,127 @@
+{
+ "apple_models": {
+  "iPhone9,1": {
+   "model": "iPhone 7",
+   "soc": "Apple A10 Fusion"
+  },
+  "iPhone9,3": {
+   "model": "iPhone 7",
+   "soc": "Apple A10 Fusion"
+  },
+  "iPhone10,1": {
+   "model": "iPhone 8",
+   "soc": "Apple A11 Bionic"
+  },
+  "iPhone10,4": {
+   "model": "iPhone 8",
+   "soc": "Apple A11 Bionic"
+  },
+  "iPhone10,3": {
+   "model": "iPhone X",
+   "soc": "Apple A11 Bionic"
+  },
+  "iPhone10,6": {
+   "model": "iPhone X",
+   "soc": "Apple A11 Bionic"
+  },
+  "iPhone11,2": {
+   "model": "iPhone XS",
+   "soc": "Apple A12 Bionic"
+  },
+  "iPhone11,8": {
+   "model": "iPhone XR",
+   "soc": "Apple A12 Bionic"
+  },
+  "iPhone12,1": {
+   "model": "iPhone 11",
+   "soc": "Apple A13 Bionic"
+  },
+  "iPhone12,3": {
+   "model": "iPhone 11 Pro",
+   "soc": "Apple A13 Bionic"
+  },
+  "iPhone12,8": {
+   "model": "iPhone SE (2nd gen)",
+   "soc": "Apple A13 Bionic"
+  },
+  "iPhone13,1": {
+   "model": "iPhone 12 mini",
+   "soc": "Apple A14 Bionic"
+  },
+  "iPhone13,2": {
+   "model": "iPhone 12",
+   "soc": "Apple A14 Bionic"
+  },
+  "iPhone13,3": {
+   "model": "iPhone 12 Pro",
+   "soc": "Apple A14 Bionic"
+  },
+  "iPhone14,5": {
+   "model": "iPhone 13",
+   "soc": "Apple A15 Bionic"
+  },
+  "iPhone14,2": {
+   "model": "iPhone 13 Pro",
+   "soc": "Apple A15 Bionic"
+  },
+  "iPhone14,6": {
+   "model": "iPhone SE (3rd gen)",
+   "soc": "Apple A15 Bionic"
+  },
+  "iPhone14,7": {
+   "model": "iPhone 14",
+   "soc": "Apple A15 Bionic"
+  },
+  "iPhone15,2": {
+   "model": "iPhone 14 Pro",
+   "soc": "Apple A16 Bionic"
+  },
+  "iPhone15,4": {
+   "model": "iPhone 15",
+   "soc": "Apple A16 Bionic"
+  },
+  "iPhone16,1": {
+   "model": "iPhone 15 Pro",
+   "soc": "Apple A17 Pro"
+  }
+ },
+ "qcom_platforms": {
+  "msm8998": "Snapdragon 835",
+  "sdm845": "Snapdragon 845",
+  "sdm660": "Snapdragon 660",
+  "msmnile": "Snapdragon 855",
+  "kona": "Snapdragon 865",
+  "lahaina": "Snapdragon 888",
+  "taro": "Snapdragon 8 Gen 1",
+  "kalama": "Snapdragon 8 Gen 2",
+  "pineapple": "Snapdragon 8 Gen 3"
+ },
+ "dtc_fixes": {
+  "P0300": {
+   "meaning": "Random/multiple cylinder misfire",
+   "fix": "Check spark plugs, coils, and fuel delivery; clear and recheck."
+  },
+  "P0171": {
+   "meaning": "System too lean (bank 1)",
+   "fix": "Look for vacuum/intake leaks, a dirty MAF sensor, or weak fuel pump."
+  },
+  "P0420": {
+   "meaning": "Catalyst efficiency below threshold (bank 1)",
+   "fix": "Often a failing catalytic converter or an O2 sensor; verify sensor first."
+  },
+  "P0455": {
+   "meaning": "Large EVAP system leak",
+   "fix": "Check the gas cap first (reseat/replace), then EVAP hoses."
+  },
+  "P0128": {
+   "meaning": "Coolant thermostat below regulating temperature",
+   "fix": "Usually a stuck-open thermostat; replace it."
+  },
+  "P0442": {
+   "meaning": "Small EVAP system leak",
+   "fix": "Reseat/replace the gas cap; inspect EVAP lines for small cracks."
+  }
+ },
+ "apple_year_alphabet": "CDFGHJKLMNPQRSTVWXYZ",
+ "apple_week_alphabet": "123456789CDFGHJKLMNPQRTVWXY"
+}
