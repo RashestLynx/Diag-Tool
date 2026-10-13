@@ -1,0 +1,126 @@
+name: Build apps
+
+# Builds the Diag-Tool app for Android, Windows and macOS on every push and
+# pull request, and uploads the results as downloadable artifacts. iOS is built
+# unsigned (a signed .ipa needs Apple credentials, which aren't in CI).
+#
+# The CLI/Python tests run too, so the whole repo is checked in one place.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.47.7"
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  python-cli:
+    name: Python CLI tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+      - name: Check the app's knowledge base is in sync
+        run: |
+          python diag_tool.py export-json
+          git diff --exit-code app/assets/knowledge.json \
+            || (echo "knowledge.json is stale - run: python diag_tool.py export-json" && exit 1)
+
+  analyze-test:
+    name: Flutter analyze & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  android:
+    name: Android APK
+    needs: [analyze-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-tool-android-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
+
+  windows:
+    name: Windows build
+    needs: [analyze-test]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-tool-windows
+          path: app/build/windows/x64/runner/Release
+
+  macos:
+    name: macOS build
+    needs: [analyze-test]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build macos --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-tool-macos
+          path: app/build/macos/Build/Products/Release/*.app
+
+  ios:
+    name: iOS build (unsigned)
+    needs: [analyze-test]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
