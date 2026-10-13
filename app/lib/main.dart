@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'car/car_screen.dart';
 import 'controller/controller_screen.dart';
 import 'knowledge.dart';
 import 'recovery/recovery.dart';
@@ -42,7 +43,7 @@ class _HomeState extends State<_Home> {
           .then((r) => (r[0] as Knowledge, r[1] as Recovery, r[2] as Reference));
   int _tab = 0;
 
-  static const _titles = ['Scan', 'Diagnose', 'Controller', 'Recovery', 'Identify'];
+  static const _titles = ['Scan', 'Diagnose', 'Controller', 'Car', 'Recovery', 'Identify'];
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +64,7 @@ class _HomeState extends State<_Home> {
           ScanScreen(knowledge: knowledge, reference: reference),
           DiagnoseScreen(knowledge: knowledge, reference: reference),
           const ControllerScreen(),
+          CarScreen(reference: reference),
           RecoveryScreen(recovery: recovery),
           IdentifyScreen(reference: reference),
         ];
@@ -95,6 +97,10 @@ class _HomeState extends State<_Home> {
                         selectedIcon: Icon(Icons.sports_esports),
                         label: Text('Controller')),
                     NavigationRailDestination(
+                        icon: Icon(Icons.directions_car_outlined),
+                        selectedIcon: Icon(Icons.directions_car),
+                        label: Text('Car')),
+                    NavigationRailDestination(
                         icon: Icon(Icons.lock_reset_outlined),
                         selectedIcon: Icon(Icons.lock_reset),
                         label: Text('Recovery')),
@@ -126,6 +132,10 @@ class _HomeState extends State<_Home> {
                         icon: Icon(Icons.sports_esports_outlined),
                         selectedIcon: Icon(Icons.sports_esports),
                         label: 'Controller'),
+                    NavigationDestination(
+                        icon: Icon(Icons.directions_car_outlined),
+                        selectedIcon: Icon(Icons.directions_car),
+                        label: 'Car'),
                     NavigationDestination(
                         icon: Icon(Icons.lock_reset_outlined),
                         selectedIcon: Icon(Icons.lock_reset),

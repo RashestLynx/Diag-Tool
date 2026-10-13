@@ -1,0 +1,10 @@
+# Copy to android/key.properties and fill in to sign release builds.
+# NEVER commit the real file or your keystore (both are gitignored).
+#
+# Create a keystore once with:
+#   keytool -genkey -v -keystore ~/diag-tool-release.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias diag-tool
+storeFile=/absolute/path/to/diag-tool-release.jks
+storePassword=your-store-password
+keyAlias=diag-tool
+keyPassword=your-key-password

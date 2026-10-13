@@ -19,7 +19,14 @@ class ControllerScreen extends StatefulWidget {
 class _ControllerScreenState extends State<ControllerScreen> {
   final _state = NormalizedGamepadState();
   StreamSubscription<NormalizedGamepadEvent>? _events;
+  StreamSubscription<GamepadEvent>? _rawEvents;
   StreamSubscription<GamepadConnectionEvent>? _connections;
+
+  // Every raw key the OS reports (keyed by platform key id), so inputs the
+  // normalized layer can't map - e.g. the PS/Guide button or the DualSense
+  // touchpad on some platforms - are still visible.
+  final Map<String, GamepadEvent> _rawByKey = {};
+  int _rawCount = 0;
 
   List<GamepadController> _pads = [];
   String? _selectedId;
@@ -62,6 +69,13 @@ class _ControllerScreenState extends State<ControllerScreen> {
         _state.update(e);
         _recordCoverage(e);
         _timing.add(e.timestamp);
+        if (mounted) setState(() {});
+      });
+      // Raw stream: captures every key the OS sends, even unmapped ones.
+      _rawEvents = Gamepads.events.listen((e) {
+        if (_selectedId != null && e.gamepadId != _selectedId) return;
+        _rawByKey[e.key] = e;
+        _rawCount++;
         if (mounted) setState(() {});
       });
       _connections = Gamepads.connectionEvents.listen((_) => _refresh());
@@ -117,6 +131,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
     _testTicksLeft = 0;
     _coverage = InputCoverage();
     _timing.reset();
+    _rawByKey.clear();
+    _rawCount = 0;
     _hasRumble = null;
     _probeRumble();
   }
@@ -204,6 +220,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
   @override
   void dispose() {
     _events?.cancel();
+    _rawEvents?.cancel();
     _connections?.cancel();
     _testTimer?.cancel();
     _infoTimer?.cancel();
@@ -275,6 +292,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
         _buttonsCard(context, names),
         const SizedBox(height: 12),
         _coverageCard(context, names),
+        const SizedBox(height: 12),
+        _rawMonitorCard(context),
         const SizedBox(height: 12),
         _timingCard(context),
         const SizedBox(height: 12),
@@ -791,6 +810,71 @@ class _ControllerScreenState extends State<ControllerScreen> {
     if (i.batteryState == 'charging' || l >= 50) return const Color(0xFF2E7D32);
     if (l >= 20) return const Color(0xFFE09400);
     return scheme.error;
+  }
+
+  Widget _rawMonitorCard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final keys = _rawByKey.keys.toList()..sort();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.input),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Raw input monitor', style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600)),
+              ),
+              Text('$_rawCount events', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+            ]),
+            const SizedBox(height: 4),
+            Text('Every input the system reports, even ones the standard layout '
+                'can’t name (e.g. the PS/Guide button or the touchpad on some '
+                'platforms). Press a button and watch its raw id appear here.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 10),
+            if (keys.isEmpty)
+              Text(
+                _rawCount == 0
+                    ? 'No input yet. Press any button or move a stick. If nothing ever '
+                        'appears here, your OS isn’t sending this app the controller’s input.'
+                    : 'Waiting…',
+                style: TextStyle(color: scheme.onSurfaceVariant))
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final k in keys)
+                    Builder(builder: (_) {
+                      final e = _rawByKey[k]!;
+                      final active = e.value.abs() > 0.1;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: active ? scheme.primary : scheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${e.type == KeyType.button ? "btn" : "axis"} $k: ${e.value.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFeatures: const [],
+                            color: active ? scheme.onPrimary : scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _timingCard(BuildContext context) {

@@ -39,6 +39,7 @@ dependencies:
   ffi: ^2.2.0
   url_launcher: ^6.3.3
   gamepads: ^0.1.12
+  flutter_blue_plus: ^2.3.14
 
 dev_dependencies:
   flutter_test:
