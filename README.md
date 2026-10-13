@@ -10,6 +10,22 @@ Tells you **what's going on** with an electronic device, **how to fix it**, and
 Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 `scan` results on Windows/macOS.)
 
+## Links
+
+- **Development branch:** https://github.com/RashestLynx/Diag-Tool/tree/ccr-2c5184d8-u5e4pj
+- **App source (`app/`):** https://github.com/RashestLynx/Diag-Tool/tree/ccr-2c5184d8-u5e4pj/app
+- **Pull request:** https://github.com/RashestLynx/Diag-Tool/pull/1
+- **CI / build downloads (Actions):** https://github.com/RashestLynx/Diag-Tool/actions
+
+Clone the branch directly:
+
+```
+git clone -b ccr-2c5184d8-u5e4pj https://github.com/RashestLynx/Diag-Tool.git
+```
+
+Installable builds (Android APK, Windows, macOS) are attached as **Artifacts**
+at the bottom of each successful Actions run.
+
 ## Building the apps
 
 GitHub Actions builds the Android APK and Windows/macOS apps on every push
