@@ -22,7 +22,8 @@ Three tabs:
   - **Full input check:** a checklist that turns green once every button,
     trigger and stick direction has responded - finds anything dead.
   - **Vibration test:** buzzes the low motor, high motor or both.
-  - **Live polling rate:** shows how many updates/sec the controller sends.
+  - **Report timing:** reports/sec, average gap, jitter and worst gap for the
+    controller->app link (not full press-to-screen lag, which needs a camera).
 - **Identify** - validate an IMEI (checksum + make/model TAC) or a serial
   number, with links to official lookup pages.
 

@@ -74,6 +74,47 @@ void main() {
     });
   });
 
+  group('ReportTiming', () {
+    test('first sample is ignored, then intervals are measured', () {
+      final t = ReportTiming();
+      expect(t.add(1000), isFalse); // no previous timestamp
+      expect(t.add(1008), isTrue);
+      expect(t.add(1016), isTrue);
+      expect(t.averageMs, closeTo(8, 1e-9));
+      expect(t.rateHz, closeTo(125, 1e-6));
+      expect(t.sampleCount, 2);
+    });
+
+    test('jitter is the spread between fastest and slowest report', () {
+      final t = ReportTiming();
+      t.add(0);
+      for (final ms in [8, 16, 30, 40]) {
+        t.add(ms);
+      }
+      // deltas: 8, 8, 14, 10  -> min 8, max 14
+      expect(t.minMs, 8);
+      expect(t.maxMs, 14);
+      expect(t.jitterMs, 6);
+    });
+
+    test('drops idle gaps and backwards timestamps', () {
+      final t = ReportTiming();
+      t.add(0);
+      expect(t.add(8), isTrue);
+      expect(t.add(5), isFalse); // went backwards
+      expect(t.add(1200), isFalse); // >500ms idle gap
+      expect(t.sampleCount, 1);
+    });
+
+    test('window caps how many intervals are kept', () {
+      final t = ReportTiming(window: 3);
+      for (var i = 1; i <= 10; i++) {
+        t.add(i * 8);
+      }
+      expect(t.sampleCount, 3);
+    });
+  });
+
   group('appliedMagnitude (dead zone math)', () {
     test('inside the dead zone reads as zero', () {
       expect(appliedMagnitude(0.05, 0.0, 0.1), 0.0);

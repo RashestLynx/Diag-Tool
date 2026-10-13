@@ -196,6 +196,51 @@ class _Reach {
       ];
 }
 
+/// Measures the gap between consecutive input reports from a controller: the
+/// controller->app timing and how steady it is. This is not full end-to-end
+/// lag (press-to-screen), which can only be measured with a camera.
+class ReportTiming {
+  ReportTiming({this.window = 240});
+
+  /// How many recent intervals to keep.
+  final int window;
+  final List<double> _intervals = [];
+  int? _lastMs;
+
+  /// Feed each event's timestamp (milliseconds). Returns false if the sample
+  /// was ignored (first event, or a non-increasing/implausible timestamp).
+  bool add(int timestampMs) {
+    final last = _lastMs;
+    _lastMs = timestampMs;
+    if (last == null) return false;
+    final delta = (timestampMs - last).toDouble();
+    // Drop zero/negative steps and long idle gaps (> 0.5s = you stopped moving).
+    if (delta <= 0 || delta > 500) return false;
+    _intervals.add(delta);
+    if (_intervals.length > window) _intervals.removeAt(0);
+    return true;
+  }
+
+  void reset() {
+    _intervals.clear();
+    _lastMs = null;
+  }
+
+  int get sampleCount => _intervals.length;
+  bool get hasData => _intervals.isNotEmpty;
+
+  double get averageMs =>
+      _intervals.isEmpty ? 0 : _intervals.reduce((a, b) => a + b) / _intervals.length;
+  double get minMs => _intervals.isEmpty ? 0 : _intervals.reduce(math.min);
+  double get maxMs => _intervals.isEmpty ? 0 : _intervals.reduce(math.max);
+
+  /// Spread between the fastest and slowest report in the window.
+  double get jitterMs => _intervals.isEmpty ? 0 : maxMs - minMs;
+
+  /// Implied report rate in Hz from the average interval.
+  double get rateHz => averageMs <= 0 ? 0 : 1000 / averageMs;
+}
+
 /// Apply a radial dead zone to a raw stick reading, the way a game would.
 /// Returns the magnitude the game would actually see (0 inside the dead zone,
 /// rescaled to 0..1 outside it).

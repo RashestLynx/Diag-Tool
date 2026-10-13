@@ -24,10 +24,9 @@ class _ControllerScreenState extends State<ControllerScreen> {
   String? _selectedId;
   bool _loading = true;
 
-  // Input-coverage checklist and live polling rate.
+  // Input-coverage checklist and live report timing.
   InputCoverage _coverage = InputCoverage();
-  final List<int> _recentEventMs = [];
-  int _pollHz = 0;
+  final ReportTiming _timing = ReportTiming();
 
   // Rumble
   bool? _hasRumble;
@@ -57,7 +56,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
         if (e.gamepadId != _selectedId) return;
         _state.update(e);
         _recordCoverage(e);
-        _tickPolling(e.timestamp);
+        _timing.add(e.timestamp);
         if (mounted) setState(() {});
       });
       _connections = Gamepads.connectionEvents.listen((_) => _refresh());
@@ -107,8 +106,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
     _leftResult = _rightResult = null;
     _testTicksLeft = 0;
     _coverage = InputCoverage();
-    _recentEventMs.clear();
-    _pollHz = 0;
+    _timing.reset();
     _hasRumble = null;
     _probeRumble();
   }
@@ -169,12 +167,6 @@ class _ControllerScreenState extends State<ControllerScreen> {
     }
   }
 
-  void _tickPolling(int timestampMs) {
-    // timestamp is milliseconds since epoch; count events in the last second.
-    _recentEventMs.add(timestampMs);
-    _recentEventMs.removeWhere((t) => timestampMs - t > 1000);
-    _pollHz = _recentEventMs.length;
-  }
 
   /// Buttons we expect this controller to have (for the coverage checklist).
   List<String> get _expectedButtons => [
@@ -269,6 +261,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
         const SizedBox(height: 12),
         _coverageCard(context, names),
         const SizedBox(height: 12),
+        _timingCard(context),
+        const SizedBox(height: 12),
         _rumbleCard(context),
       ],
     );
@@ -300,7 +294,9 @@ class _ControllerScreenState extends State<ControllerScreen> {
                           ?.copyWith(fontWeight: FontWeight.bold, color: scheme.onSecondaryContainer),
                       overflow: TextOverflow.ellipsis),
                   Text(
-                    _pollHz > 0 ? 'Connected · ~$_pollHz updates/sec' : 'Connected · move a stick to measure rate',
+                    _timing.hasData
+                        ? 'Connected · ~${_timing.rateHz.round()} reports/sec'
+                        : 'Connected · move a stick to measure',
                     style: TextStyle(color: scheme.onSecondaryContainer.withValues(alpha: 0.8), fontSize: 11),
                   ),
                 ],
@@ -686,6 +682,61 @@ class _ControllerScreenState extends State<ControllerScreen> {
       'touchpad' => 'Touchpad',
       _ => name,
     };
+  }
+
+  Widget _timingCard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final has = _timing.hasData;
+    Widget stat(String label, String value) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value, style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(label, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+          ],
+        );
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Report timing', style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('Keep a stick moving in a circle for a few seconds. This is how fast and how '
+                'evenly the controller reports to the app - not full press-to-screen lag, which '
+                'needs a camera to measure.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 14),
+            if (!has)
+              Text('Move a stick to begin…', style: Theme.of(context).textTheme.bodyMedium)
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  stat('reports/sec', _timing.rateHz.round().toString()),
+                  stat('avg gap', '${_timing.averageMs.toStringAsFixed(1)} ms'),
+                  stat('jitter', '${_timing.jitterMs.toStringAsFixed(0)} ms'),
+                  stat('worst gap', '${_timing.maxMs.toStringAsFixed(0)} ms'),
+                ],
+              ),
+            if (has) ...[
+              const SizedBox(height: 10),
+              Text(
+                _timing.rateHz >= 100
+                    ? 'Fast, responsive reporting.'
+                    : _timing.rateHz >= 50
+                        ? 'Normal for a wireless controller.'
+                        : 'Low report rate - try a USB cable, fresh batteries, or move closer '
+                            'to reduce Bluetooth interference.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _rumbleCard(BuildContext context) {
