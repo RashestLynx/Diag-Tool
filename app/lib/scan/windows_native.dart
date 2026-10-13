@@ -114,6 +114,9 @@ class WindowsWmiInfo {
   int? chassisType;
   int? batteryCapacityPct;
   int? batteryCycles;
+  String? cpu;
+  String? gpu;
+  int? cpuCores;
 }
 
 /// Slower details from WMI via PowerShell. Every field is best-effort.
@@ -125,8 +128,11 @@ $en = Get-CimInstance Win32_SystemEnclosure
 $full = (Get-CimInstance -Namespace root\wmi -ClassName BatteryFullChargedCapacity | Select-Object -First 1).FullChargedCapacity
 $design = (Get-CimInstance -Namespace root\wmi -ClassName BatteryStaticData | Select-Object -First 1).DesignedCapacity
 $cycles = (Get-CimInstance -Namespace root\wmi -ClassName BatteryCycleCount | Select-Object -First 1).CycleCount
+$cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
+$gpu = (Get-CimInstance Win32_VideoController | Where-Object { $_.Name } | Select-Object -First 1).Name
 @{ manufacturer = $cs.Manufacturer; model = $cs.Model; chassis = @($en.ChassisTypes)[0];
-   full = $full; design = $design; cycles = $cycles } | ConvertTo-Json -Compress
+   full = $full; design = $design; cycles = $cycles;
+   cpu = $cpu.Name; cores = $cpu.NumberOfLogicalProcessors; gpu = $gpu } | ConvertTo-Json -Compress
 ''';
   final info = WindowsWmiInfo();
   try {
@@ -146,6 +152,9 @@ $cycles = (Get-CimInstance -Namespace root\wmi -ClassName BatteryCycleCount | Se
     }
     final cycles = (j['cycles'] as num?)?.toInt();
     if (cycles != null && cycles > 0) info.batteryCycles = cycles;
+    info.cpu = (j['cpu'] as String?)?.trim();
+    info.gpu = (j['gpu'] as String?)?.trim();
+    info.cpuCores = (j['cores'] as num?)?.toInt();
   } catch (_) {
     // PowerShell missing, blocked or slow - just show less detail.
   }

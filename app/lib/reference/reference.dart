@@ -8,10 +8,11 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
 class AppleModel {
-  AppleModel(this.productType, this.model, this.soc);
+  AppleModel(this.productType, this.model, this.soc, this.year);
   final String productType;
   final String model;
   final String soc;
+  final int? year; // model release year, or null if unknown
 }
 
 class DtcCode {
@@ -36,6 +37,8 @@ class Reference {
     required this.dtcFixes,
     required this.appleYearAlphabet,
     required this.appleWeekAlphabet,
+    required this.dtcSystems,
+    required this.dtcPSubsystems,
   });
 
   final Map<String, AppleModel> appleModels;
@@ -43,6 +46,8 @@ class Reference {
   final Map<String, DtcCode> dtcFixes;
   final String appleYearAlphabet;
   final String appleWeekAlphabet;
+  final Map<String, String> dtcSystems;
+  final Map<String, String> dtcPSubsystems;
 
   static Future<Reference> load() async =>
       Reference.fromJson(jsonDecode(await rootBundle.loadString('assets/reference.json')));
@@ -50,7 +55,8 @@ class Reference {
   factory Reference.fromJson(Map<String, dynamic> j) => Reference(
         appleModels: {
           for (final e in (j['apple_models'] as Map<String, dynamic>).entries)
-            e.key: AppleModel(e.key, e.value['model'] as String, e.value['soc'] as String),
+            e.key: AppleModel(e.key, e.value['model'] as String, e.value['soc'] as String,
+                (e.value['year'] as num?)?.toInt()),
         },
         qcomPlatforms: Map<String, String>.from(j['qcom_platforms'] as Map),
         dtcFixes: {
@@ -59,13 +65,35 @@ class Reference {
         },
         appleYearAlphabet: j['apple_year_alphabet'] as String,
         appleWeekAlphabet: j['apple_week_alphabet'] as String,
+        dtcSystems: Map<String, String>.from(j['dtc_systems'] as Map),
+        dtcPSubsystems: Map<String, String>.from(j['dtc_p_subsystems'] as Map),
       );
 
   /// Look up an Apple product type like "iPhone14,5" (case/space-insensitive).
   AppleModel? appleModel(String productType) => appleModels[productType.trim()];
 
+  /// Release year for an Apple product type, or null if unknown.
+  int? appleReleaseYear(String productType) => appleModels[productType.trim()]?.year;
+
   /// Look up a car trouble code like "p0420" (normalized to upper-case).
   DtcCode? dtc(String code) => dtcFixes[code.trim().toUpperCase()];
+
+  /// Explain the structure of ANY well-formed code, for ones not in [dtcFixes].
+  /// Returns null if the text isn't a valid 5-character OBD-II code.
+  String? describeDtc(String code) {
+    final c = code.trim().toUpperCase();
+    if (c.length != 5) return null;
+    final sys = dtcSystems[c[0]];
+    if (sys == null || !RegExp(r'^\d{4}$').hasMatch(c.substring(1))) return null;
+    final parts = <String>[
+      sys,
+      c[1] == '1' ? 'manufacturer-specific' : 'generic (same on every make)',
+    ];
+    if (c[0] == 'P' && dtcPSubsystems.containsKey(c[2])) {
+      parts.add(dtcPSubsystems[c[2]]!);
+    }
+    return parts.join(' · ');
+  }
 
   /// Estimate the manufacture date from a legacy (11/12-char) Apple serial.
   /// Mirrors device_export.apple_serial_date. Returns null when not derivable.

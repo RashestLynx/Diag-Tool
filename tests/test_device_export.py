@@ -63,6 +63,19 @@ class DtcTests(unittest.TestCase):
         meaning, fix = dx.DTC_FIXES["P0420"]
         self.assertTrue(meaning and fix)
 
+    def test_describe_any_wellformed_code(self):
+        # A code not in the table still gets a structural explanation.
+        self.assertNotIn("P1345", dx.DTC_FIXES)
+        desc = dx.describe_dtc("P1345")
+        self.assertIn("Powertrain", desc)
+        self.assertIn("manufacturer-specific", desc)  # second digit 1
+        self.assertIn("ignition", desc)  # subsystem digit 3
+
+    def test_describe_generic_vs_bad(self):
+        self.assertIn("generic", dx.describe_dtc("P0420"))
+        self.assertIn("Network", dx.describe_dtc("U0100"))
+        self.assertIn("Not a standard", dx.describe_dtc("hello"))
+
 
 class AppReferenceJsonTests(unittest.TestCase):
     def test_reference_json_is_up_to_date(self):

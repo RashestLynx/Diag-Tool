@@ -2,126 +2,540 @@
  "apple_models": {
   "iPhone9,1": {
    "model": "iPhone 7",
-   "soc": "Apple A10 Fusion"
+   "soc": "Apple A10 Fusion",
+   "year": 2016
   },
   "iPhone9,3": {
    "model": "iPhone 7",
-   "soc": "Apple A10 Fusion"
+   "soc": "Apple A10 Fusion",
+   "year": 2016
   },
   "iPhone10,1": {
    "model": "iPhone 8",
-   "soc": "Apple A11 Bionic"
+   "soc": "Apple A11 Bionic",
+   "year": 2017
   },
   "iPhone10,4": {
    "model": "iPhone 8",
-   "soc": "Apple A11 Bionic"
+   "soc": "Apple A11 Bionic",
+   "year": 2017
   },
   "iPhone10,3": {
    "model": "iPhone X",
-   "soc": "Apple A11 Bionic"
+   "soc": "Apple A11 Bionic",
+   "year": 2017
   },
   "iPhone10,6": {
    "model": "iPhone X",
-   "soc": "Apple A11 Bionic"
+   "soc": "Apple A11 Bionic",
+   "year": 2017
   },
   "iPhone11,2": {
    "model": "iPhone XS",
-   "soc": "Apple A12 Bionic"
+   "soc": "Apple A12 Bionic",
+   "year": 2018
   },
   "iPhone11,8": {
    "model": "iPhone XR",
-   "soc": "Apple A12 Bionic"
+   "soc": "Apple A12 Bionic",
+   "year": 2018
   },
   "iPhone12,1": {
    "model": "iPhone 11",
-   "soc": "Apple A13 Bionic"
+   "soc": "Apple A13 Bionic",
+   "year": 2019
   },
   "iPhone12,3": {
    "model": "iPhone 11 Pro",
-   "soc": "Apple A13 Bionic"
+   "soc": "Apple A13 Bionic",
+   "year": 2019
   },
   "iPhone12,8": {
    "model": "iPhone SE (2nd gen)",
-   "soc": "Apple A13 Bionic"
+   "soc": "Apple A13 Bionic",
+   "year": 2020
   },
   "iPhone13,1": {
    "model": "iPhone 12 mini",
-   "soc": "Apple A14 Bionic"
+   "soc": "Apple A14 Bionic",
+   "year": 2020
   },
   "iPhone13,2": {
    "model": "iPhone 12",
-   "soc": "Apple A14 Bionic"
+   "soc": "Apple A14 Bionic",
+   "year": 2020
   },
   "iPhone13,3": {
    "model": "iPhone 12 Pro",
-   "soc": "Apple A14 Bionic"
+   "soc": "Apple A14 Bionic",
+   "year": 2020
   },
   "iPhone14,5": {
    "model": "iPhone 13",
-   "soc": "Apple A15 Bionic"
+   "soc": "Apple A15 Bionic",
+   "year": 2021
   },
   "iPhone14,2": {
    "model": "iPhone 13 Pro",
-   "soc": "Apple A15 Bionic"
+   "soc": "Apple A15 Bionic",
+   "year": 2021
   },
   "iPhone14,6": {
    "model": "iPhone SE (3rd gen)",
-   "soc": "Apple A15 Bionic"
+   "soc": "Apple A15 Bionic",
+   "year": 2022
   },
   "iPhone14,7": {
    "model": "iPhone 14",
-   "soc": "Apple A15 Bionic"
+   "soc": "Apple A15 Bionic",
+   "year": 2022
   },
   "iPhone15,2": {
    "model": "iPhone 14 Pro",
-   "soc": "Apple A16 Bionic"
+   "soc": "Apple A16 Bionic",
+   "year": 2022
   },
   "iPhone15,4": {
    "model": "iPhone 15",
-   "soc": "Apple A16 Bionic"
+   "soc": "Apple A16 Bionic",
+   "year": 2023
   },
   "iPhone16,1": {
    "model": "iPhone 15 Pro",
-   "soc": "Apple A17 Pro"
+   "soc": "Apple A17 Pro",
+   "year": 2023
   }
  },
  "qcom_platforms": {
+  "msm8937": "Snapdragon 430/435",
+  "msm8953": "Snapdragon 625",
   "msm8998": "Snapdragon 835",
-  "sdm845": "Snapdragon 845",
   "sdm660": "Snapdragon 660",
+  "sdm670": "Snapdragon 670",
+  "sdm710": "Snapdragon 710",
+  "sdm845": "Snapdragon 845",
   "msmnile": "Snapdragon 855",
+  "lito": "Snapdragon 765/768G",
+  "bengal": "Snapdragon 662/680",
+  "atoll": "Snapdragon 720G/730",
+  "trinket": "Snapdragon 665",
   "kona": "Snapdragon 865",
   "lahaina": "Snapdragon 888",
+  "sm7325": "Snapdragon 778G",
+  "sm6375": "Snapdragon 695",
   "taro": "Snapdragon 8 Gen 1",
   "kalama": "Snapdragon 8 Gen 2",
-  "pineapple": "Snapdragon 8 Gen 3"
+  "pineapple": "Snapdragon 8 Gen 3",
+  "mt6765": "MediaTek Helio P35/G35",
+  "mt6768": "MediaTek Helio G85",
+  "mt6769": "MediaTek Helio G80/G85",
+  "mt6785": "MediaTek Helio G90T",
+  "mt6833": "MediaTek Dimensity 700/800U",
+  "mt6853": "MediaTek Dimensity 720/800",
+  "mt6877": "MediaTek Dimensity 900/920",
+  "mt6893": "MediaTek Dimensity 1200",
+  "mt6895": "MediaTek Dimensity 8100",
+  "mt6983": "MediaTek Dimensity 9000",
+  "mt6985": "MediaTek Dimensity 9200",
+  "exynos850": "Samsung Exynos 850",
+  "exynos9611": "Samsung Exynos 9611",
+  "exynos9820": "Samsung Exynos 9820",
+  "exynos990": "Samsung Exynos 990",
+  "exynos2100": "Samsung Exynos 2100",
+  "s5e8825": "Samsung Exynos 1280",
+  "s5e9925": "Samsung Exynos 2200",
+  "gs101": "Google Tensor (G1)",
+  "gs201": "Google Tensor G2",
+  "zuma": "Google Tensor G3"
  },
  "dtc_fixes": {
-  "P0300": {
-   "meaning": "Random/multiple cylinder misfire",
-   "fix": "Check spark plugs, coils, and fuel delivery; clear and recheck."
+  "P0100": {
+   "meaning": "Mass/volume air flow (MAF) circuit",
+   "fix": "Check the MAF connector/wiring; clean or replace the MAF sensor."
   },
-  "P0171": {
-   "meaning": "System too lean (bank 1)",
-   "fix": "Look for vacuum/intake leaks, a dirty MAF sensor, or weak fuel pump."
+  "P0101": {
+   "meaning": "MAF sensor range/performance",
+   "fix": "Clean the MAF with MAF-safe spray; check the air filter and intake boot."
   },
-  "P0420": {
-   "meaning": "Catalyst efficiency below threshold (bank 1)",
-   "fix": "Often a failing catalytic converter or an O2 sensor; verify sensor first."
+  "P0102": {
+   "meaning": "MAF sensor circuit low input",
+   "fix": "Inspect for intake leaks after the MAF; check wiring; replace the MAF."
   },
-  "P0455": {
-   "meaning": "Large EVAP system leak",
-   "fix": "Check the gas cap first (reseat/replace), then EVAP hoses."
+  "P0103": {
+   "meaning": "MAF sensor circuit high input",
+   "fix": "Check the MAF wiring/connector; replace the MAF if out of range."
+  },
+  "P0106": {
+   "meaning": "MAP/baro sensor range/performance",
+   "fix": "Check the MAP sensor and its vacuum line; replace if reading is off."
+  },
+  "P0107": {
+   "meaning": "MAP sensor circuit low input",
+   "fix": "Inspect MAP wiring/connector; replace the MAP sensor."
+  },
+  "P0108": {
+   "meaning": "MAP sensor circuit high input",
+   "fix": "Check the MAP vacuum line and wiring; replace the MAP sensor."
+  },
+  "P0111": {
+   "meaning": "Intake air temp (IAT) sensor range/performance",
+   "fix": "Inspect/replace the IAT sensor; check the connector."
+  },
+  "P0112": {
+   "meaning": "IAT sensor circuit low input",
+   "fix": "Check IAT wiring for a short; replace the sensor."
+  },
+  "P0113": {
+   "meaning": "IAT sensor circuit high input",
+   "fix": "Inspect the IAT sensor and wiring; replace the sensor if faulty."
+  },
+  "P0116": {
+   "meaning": "Engine coolant temp (ECT) sensor range/performance",
+   "fix": "Check coolant level; inspect/replace the ECT sensor."
+  },
+  "P0117": {
+   "meaning": "ECT sensor circuit low input",
+   "fix": "Check ECT wiring for a short; replace the sensor."
+  },
+  "P0118": {
+   "meaning": "ECT sensor circuit high input",
+   "fix": "Inspect the ECT connector/wiring; replace the sensor."
+  },
+  "P0121": {
+   "meaning": "Throttle/pedal position sensor A range/performance",
+   "fix": "Clean the throttle body; check the TPS; inspect wiring."
+  },
+  "P0122": {
+   "meaning": "Throttle/pedal position sensor A low input",
+   "fix": "Check TPS wiring/connector; replace the throttle position sensor."
+  },
+  "P0123": {
+   "meaning": "Throttle/pedal position sensor A high input",
+   "fix": "Check TPS wiring for a short to power; replace the TPS."
   },
   "P0128": {
    "meaning": "Coolant thermostat below regulating temperature",
    "fix": "Usually a stuck-open thermostat; replace it."
   },
+  "P0130": {
+   "meaning": "O2 sensor circuit (bank 1, sensor 1)",
+   "fix": "Inspect the upstream O2 sensor and wiring; replace the sensor."
+  },
+  "P0131": {
+   "meaning": "O2 sensor circuit low voltage (B1S1)",
+   "fix": "Check for an exhaust leak and O2 wiring; replace the upstream O2 sensor."
+  },
+  "P0132": {
+   "meaning": "O2 sensor circuit high voltage (B1S1)",
+   "fix": "Check for a rich condition; inspect O2 wiring; replace the sensor."
+  },
+  "P0133": {
+   "meaning": "O2 sensor slow response (B1S1)",
+   "fix": "The upstream O2 sensor is aging; replace it."
+  },
+  "P0134": {
+   "meaning": "O2 sensor no activity (B1S1)",
+   "fix": "Check O2 heater/wiring; replace the upstream O2 sensor."
+  },
+  "P0135": {
+   "meaning": "O2 sensor heater circuit (B1S1)",
+   "fix": "Check the O2 heater fuse and wiring; usually replace the O2 sensor."
+  },
+  "P0136": {
+   "meaning": "O2 sensor circuit (bank 1, sensor 2)",
+   "fix": "Inspect the downstream O2 sensor and wiring; replace the sensor."
+  },
+  "P0137": {
+   "meaning": "O2 sensor circuit low voltage (B1S2)",
+   "fix": "Check for an exhaust leak; inspect wiring; replace the downstream O2."
+  },
+  "P0138": {
+   "meaning": "O2 sensor circuit high voltage (B1S2)",
+   "fix": "Inspect O2 wiring; replace the downstream O2 sensor."
+  },
+  "P0141": {
+   "meaning": "O2 sensor heater circuit (B1S2)",
+   "fix": "Check the downstream O2 heater circuit; usually replace the O2 sensor."
+  },
+  "P0150": {
+   "meaning": "O2 sensor circuit (bank 2, sensor 1)",
+   "fix": "Bank 2 equivalent of P0130; inspect/replace the upstream O2 sensor."
+  },
+  "P0151": {
+   "meaning": "O2 sensor low voltage (B2S1)",
+   "fix": "Check for an exhaust leak and wiring; replace the O2 sensor."
+  },
+  "P0155": {
+   "meaning": "O2 sensor heater circuit (B2S1)",
+   "fix": "Check the O2 heater circuit; replace the bank-2 upstream O2 sensor."
+  },
+  "P0161": {
+   "meaning": "O2 sensor heater circuit (B2S2)",
+   "fix": "Check the O2 heater circuit; replace the bank-2 downstream O2 sensor."
+  },
+  "P0171": {
+   "meaning": "System too lean (bank 1)",
+   "fix": "Look for vacuum/intake leaks, a dirty MAF sensor, or weak fuel pump."
+  },
+  "P0172": {
+   "meaning": "System too rich (bank 1)",
+   "fix": "Check for a leaking injector, high fuel pressure, or a dirty MAF/O2 sensor."
+  },
+  "P0173": {
+   "meaning": "Fuel trim malfunction (bank 2)",
+   "fix": "Diagnose like lean/rich on bank 2: leaks, MAF, fuel pressure."
+  },
+  "P0174": {
+   "meaning": "System too lean (bank 2)",
+   "fix": "Same as P0171 but bank 2: vacuum leaks, MAF, fuel delivery."
+  },
+  "P0175": {
+   "meaning": "System too rich (bank 2)",
+   "fix": "Bank 2 equivalent of P0172: leaking injector, fuel pressure, MAF/O2."
+  },
+  "P0201": {
+   "meaning": "Injector circuit - cylinder 1",
+   "fix": "Check injector 1 wiring/connector and resistance; replace if open/shorted."
+  },
+  "P0202": {
+   "meaning": "Injector circuit - cylinder 2",
+   "fix": "Check injector 2 wiring/resistance; replace if faulty."
+  },
+  "P0203": {
+   "meaning": "Injector circuit - cylinder 3",
+   "fix": "Check injector 3 wiring/resistance; replace if faulty."
+  },
+  "P0204": {
+   "meaning": "Injector circuit - cylinder 4",
+   "fix": "Check injector 4 wiring/resistance; replace if faulty."
+  },
+  "P0217": {
+   "meaning": "Engine over-temperature condition",
+   "fix": "Stop and let it cool. Check coolant, thermostat, water pump, radiator/fans."
+  },
+  "P0219": {
+   "meaning": "Engine overspeed condition",
+   "fix": "Avoid over-revving; check for a downshift/throttle fault if unexpected."
+  },
+  "P0300": {
+   "meaning": "Random/multiple cylinder misfire",
+   "fix": "Check spark plugs, coils, and fuel delivery; look for vacuum leaks."
+  },
+  "P0301": {
+   "meaning": "Cylinder 1 misfire",
+   "fix": "Swap the coil/plug for cyl 1 with a neighbour; if the misfire moves, that part is bad. Also check that injector and compression."
+  },
+  "P0302": {
+   "meaning": "Cylinder 2 misfire",
+   "fix": "Swap the coil/plug with a neighbour to isolate; check injector/compression."
+  },
+  "P0303": {
+   "meaning": "Cylinder 3 misfire",
+   "fix": "Swap the coil/plug with a neighbour to isolate; check injector/compression."
+  },
+  "P0304": {
+   "meaning": "Cylinder 4 misfire",
+   "fix": "Swap the coil/plug with a neighbour to isolate; check injector/compression."
+  },
+  "P0305": {
+   "meaning": "Cylinder 5 misfire",
+   "fix": "Swap the coil/plug with a neighbour to isolate; check injector/compression."
+  },
+  "P0306": {
+   "meaning": "Cylinder 6 misfire",
+   "fix": "Swap the coil/plug with a neighbour to isolate; check injector/compression."
+  },
+  "P0307": {
+   "meaning": "Cylinder 7 misfire",
+   "fix": "Swap the coil/plug with a neighbour to isolate; check injector/compression."
+  },
+  "P0308": {
+   "meaning": "Cylinder 8 misfire",
+   "fix": "Swap the coil/plug with a neighbour to isolate; check injector/compression."
+  },
+  "P0313": {
+   "meaning": "Misfire detected with low fuel",
+   "fix": "Refuel - misfires can set when the tank is nearly empty."
+  },
+  "P0316": {
+   "meaning": "Misfire on startup (first 1000 revs)",
+   "fix": "Check plugs/coils and fuel pressure at cold start."
+  },
+  "P0325": {
+   "meaning": "Knock sensor circuit (bank 1)",
+   "fix": "Inspect the knock sensor connector/wiring; replace the sensor if open/shorted."
+  },
+  "P0330": {
+   "meaning": "Knock sensor 2 circuit (bank 2)",
+   "fix": "Inspect the bank-2 knock sensor and wiring; replace if faulty."
+  },
+  "P0335": {
+   "meaning": "Crankshaft position sensor circuit",
+   "fix": "Check the crank sensor and wiring; replace the sensor (common no-start)."
+  },
+  "P0336": {
+   "meaning": "Crankshaft position sensor range/performance",
+   "fix": "Inspect the reluctor/tone ring and crank sensor gap; replace the sensor."
+  },
+  "P0340": {
+   "meaning": "Camshaft position sensor circuit",
+   "fix": "Check the cam sensor and wiring; replace the sensor; verify timing."
+  },
+  "P0341": {
+   "meaning": "Camshaft position sensor range/performance",
+   "fix": "Check cam/crank correlation and timing; inspect the cam sensor."
+  },
+  "P0401": {
+   "meaning": "EGR insufficient flow",
+   "fix": "Clean the EGR valve and passages; check the EGR vacuum/electrical control."
+  },
+  "P0402": {
+   "meaning": "EGR excessive flow",
+   "fix": "Check for a stuck-open EGR valve or a blocked DPFE/pressure sensor line."
+  },
+  "P0404": {
+   "meaning": "EGR circuit range/performance",
+   "fix": "Inspect the EGR valve position sensor and wiring; clean/replace the valve."
+  },
+  "P0411": {
+   "meaning": "Secondary air injection - incorrect flow",
+   "fix": "Check the air pump, hoses and check valves for the smog/air system."
+  },
+  "P0420": {
+   "meaning": "Catalyst efficiency below threshold (bank 1)",
+   "fix": "Often a failing catalytic converter or an O2 sensor; verify the O2 first."
+  },
+  "P0430": {
+   "meaning": "Catalyst efficiency below threshold (bank 2)",
+   "fix": "Bank 2 equivalent of P0420; verify the rear O2 sensor before the cat."
+  },
+  "P0440": {
+   "meaning": "EVAP system (general) fault",
+   "fix": "Check the gas cap and EVAP hoses; a smoke test finds the leak."
+  },
+  "P0441": {
+   "meaning": "EVAP incorrect purge flow",
+   "fix": "Inspect the purge valve and hoses; replace a stuck purge valve."
+  },
   "P0442": {
    "meaning": "Small EVAP system leak",
    "fix": "Reseat/replace the gas cap; inspect EVAP lines for small cracks."
+  },
+  "P0443": {
+   "meaning": "EVAP purge control valve circuit",
+   "fix": "Check the purge valve wiring/connector; replace the purge valve."
+  },
+  "P0446": {
+   "meaning": "EVAP vent control circuit",
+   "fix": "Inspect the vent valve (often clogged with debris) and its wiring."
+  },
+  "P0455": {
+   "meaning": "Large EVAP system leak",
+   "fix": "Check the gas cap first (reseat/replace), then EVAP hoses and valves."
+  },
+  "P0456": {
+   "meaning": "Very small EVAP leak",
+   "fix": "Usually the gas cap seal or a tiny hose crack; smoke-test the EVAP system."
+  },
+  "P0457": {
+   "meaning": "EVAP leak - loose fuel cap",
+   "fix": "Tighten or replace the fuel cap, then clear the code."
+  },
+  "P0500": {
+   "meaning": "Vehicle speed sensor",
+   "fix": "Check the VSS and wiring; replace the speed sensor."
+  },
+  "P0505": {
+   "meaning": "Idle air control system",
+   "fix": "Clean the throttle body and idle air control valve; check for vacuum leaks."
+  },
+  "P0506": {
+   "meaning": "Idle speed lower than expected",
+   "fix": "Check for a dirty throttle body, vacuum leak, or IAC fault."
+  },
+  "P0507": {
+   "meaning": "Idle speed higher than expected",
+   "fix": "Look for a vacuum leak or a stuck-open IAC/throttle plate."
+  },
+  "P0520": {
+   "meaning": "Oil pressure sensor/switch circuit",
+   "fix": "Check oil level first; inspect the oil pressure sensor and wiring."
+  },
+  "P0562": {
+   "meaning": "System voltage low",
+   "fix": "Test the battery and alternator; a weak battery or charging fault is common."
+  },
+  "P0563": {
+   "meaning": "System voltage high",
+   "fix": "Check the alternator/voltage regulator for overcharging."
+  },
+  "P0601": {
+   "meaning": "Internal control module memory checksum error",
+   "fix": "A PCM/ECM fault; reflash or replace the module (shop/dealer)."
+  },
+  "P0606": {
+   "meaning": "PCM processor fault",
+   "fix": "Check module power/grounds; the ECM/PCM may need replacement."
+  },
+  "P0700": {
+   "meaning": "Transmission control system (malfunction)",
+   "fix": "A transmission code is stored; read the TCM sub-codes with a capable scanner."
+  },
+  "P0705": {
+   "meaning": "Transmission range sensor circuit",
+   "fix": "Check/adjust the neutral safety/range switch; inspect its wiring."
+  },
+  "P0715": {
+   "meaning": "Input/turbine speed sensor circuit",
+   "fix": "Inspect the transmission input speed sensor and wiring."
+  },
+  "P0720": {
+   "meaning": "Output speed sensor circuit",
+   "fix": "Inspect the transmission output speed sensor and wiring."
+  },
+  "P0730": {
+   "meaning": "Incorrect gear ratio",
+   "fix": "Check transmission fluid level/condition; a shift/clutch fault - see a shop."
+  },
+  "P0740": {
+   "meaning": "Torque converter clutch circuit",
+   "fix": "Check the TCC solenoid and fluid; a converter/solenoid fault."
+  },
+  "P0750": {
+   "meaning": "Shift solenoid A",
+   "fix": "Inspect the shift solenoid and wiring; check fluid condition."
+  },
+  "U0100": {
+   "meaning": "Lost communication with ECM/PCM",
+   "fix": "Check ECU power/ground and the CAN bus wiring/connectors."
+  },
+  "U0101": {
+   "meaning": "Lost communication with TCM",
+   "fix": "Check the transmission module's power, grounds and CAN wiring."
+  },
+  "U0121": {
+   "meaning": "Lost communication with ABS module",
+   "fix": "Check the ABS module connector, power/ground and CAN bus."
   }
  },
  "apple_year_alphabet": "CDFGHJKLMNPQRSTVWXYZ",
- "apple_week_alphabet": "123456789CDFGHJKLMNPQRTVWXY"
+ "apple_week_alphabet": "123456789CDFGHJKLMNPQRTVWXY",
+ "dtc_systems": {
+  "P": "Powertrain (engine/transmission)",
+  "C": "Chassis",
+  "B": "Body",
+  "U": "Network / communication"
+ },
+ "dtc_p_subsystems": {
+  "0": "fuel/air metering & auxiliary emissions",
+  "1": "fuel & air metering",
+  "2": "fuel & air metering (injector circuit)",
+  "3": "ignition system or misfire",
+  "4": "auxiliary emission controls",
+  "5": "vehicle speed control & idle control",
+  "6": "computer output circuit",
+  "7": "transmission",
+  "8": "transmission",
+  "9": "transmission / drivetrain"
+ }
 }

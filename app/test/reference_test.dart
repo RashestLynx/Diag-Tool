@@ -11,6 +11,18 @@ Reference _ref() => Reference.fromJson({
       },
       'apple_year_alphabet': 'CDFGHJKLMNPQRSTVWXYZ',
       'apple_week_alphabet': '123456789CDFGHJKLMNPQRTVWXY',
+      'dtc_systems': {
+        'P': 'Powertrain (engine/transmission)',
+        'C': 'Chassis',
+        'B': 'Body',
+        'U': 'Network / communication',
+      },
+      'dtc_p_subsystems': {
+        '1': 'fuel & air metering',
+        '2': 'fuel & air metering (injector circuit)',
+        '3': 'ignition system or misfire',
+        '4': 'auxiliary emission controls',
+      },
     });
 
 void main() {
@@ -36,6 +48,20 @@ void main() {
     });
     test('unknown code', () {
       expect(r.dtc('P9999'), isNull);
+    });
+    test('describeDtc explains any well-formed code', () {
+      final d = r.describeDtc('P1345');
+      expect(d, contains('Powertrain'));
+      expect(d, contains('manufacturer-specific'));
+      expect(d, contains('ignition'));
+    });
+    test('describeDtc rejects junk', () {
+      expect(r.describeDtc('hello'), isNull);
+      expect(r.describeDtc('P042'), isNull);
+    });
+    test('describeDtc flags generic codes', () {
+      expect(r.describeDtc('P0420'), contains('generic'));
+      expect(r.describeDtc('U0100'), contains('Network'));
     });
     test('system from prefix', () {
       expect(DtcCode('C1234', '', '').system, 'Chassis');

@@ -234,17 +234,37 @@ APPLE_MODELS = {
     "iPhone16,1": ("iPhone 15 Pro", "Apple A17 Pro"),
 }
 
-# Qualcomm platform codename (ro.board.platform) -> Snapdragon marketing name.
+# SoC platform codename (ro.board.platform) -> marketing name. Best-effort and
+# approximate - one codename sometimes covers a small family of chips. Covers
+# Qualcomm Snapdragon, MediaTek Dimensity/Helio, Samsung Exynos and Google
+# Tensor. The variable keeps its old name for backward compatibility.
 QCOM_PLATFORMS = {
-    "msm8998": "Snapdragon 835",
-    "sdm845": "Snapdragon 845",
-    "sdm660": "Snapdragon 660",
-    "msmnile": "Snapdragon 855",
-    "kona": "Snapdragon 865",
-    "lahaina": "Snapdragon 888",
-    "taro": "Snapdragon 8 Gen 1",
-    "kalama": "Snapdragon 8 Gen 2",
+    # Qualcomm Snapdragon
+    "msm8937": "Snapdragon 430/435", "msm8953": "Snapdragon 625",
+    "msm8998": "Snapdragon 835", "sdm660": "Snapdragon 660",
+    "sdm670": "Snapdragon 670", "sdm710": "Snapdragon 710",
+    "sdm845": "Snapdragon 845", "msmnile": "Snapdragon 855",
+    "lito": "Snapdragon 765/768G", "bengal": "Snapdragon 662/680",
+    "atoll": "Snapdragon 720G/730", "trinket": "Snapdragon 665",
+    "kona": "Snapdragon 865", "lahaina": "Snapdragon 888",
+    "sm7325": "Snapdragon 778G", "sm6375": "Snapdragon 695",
+    "taro": "Snapdragon 8 Gen 1", "kalama": "Snapdragon 8 Gen 2",
     "pineapple": "Snapdragon 8 Gen 3",
+    # MediaTek
+    "mt6765": "MediaTek Helio P35/G35", "mt6768": "MediaTek Helio G85",
+    "mt6769": "MediaTek Helio G80/G85", "mt6785": "MediaTek Helio G90T",
+    "mt6833": "MediaTek Dimensity 700/800U", "mt6853": "MediaTek Dimensity 720/800",
+    "mt6877": "MediaTek Dimensity 900/920", "mt6893": "MediaTek Dimensity 1200",
+    "mt6895": "MediaTek Dimensity 8100", "mt6983": "MediaTek Dimensity 9000",
+    "mt6985": "MediaTek Dimensity 9200",
+    # Samsung Exynos
+    "exynos850": "Samsung Exynos 850", "exynos9611": "Samsung Exynos 9611",
+    "exynos9820": "Samsung Exynos 9820", "exynos990": "Samsung Exynos 990",
+    "exynos2100": "Samsung Exynos 2100", "s5e8825": "Samsung Exynos 1280",
+    "s5e9925": "Samsung Exynos 2200",
+    # Google Tensor
+    "gs101": "Google Tensor (G1)", "gs201": "Google Tensor G2",
+    "zuma": "Google Tensor G3",
 }
 
 
@@ -1003,19 +1023,246 @@ def camera_photos(out: Path) -> int:
 # Cars (OBD-II via an ELM327 adapter + python-OBD) - reads trouble codes.
 # ---------------------------------------------------------------------------
 # A small map of common generic trouble codes to plain-language fixes.
+# Generic, standardized (SAE J2012) OBD-II diagnostic trouble codes. These have
+# the same meaning on every make. Manufacturer-specific codes (most P1xxx, and
+# many B/C/U codes) vary by brand and are intentionally NOT guessed here - the
+# app/CLI tells you to look those up for your specific make/model.
 DTC_FIXES = {
-    "P0300": ("Random/multiple cylinder misfire",
-              "Check spark plugs, coils, and fuel delivery; clear and recheck."),
-    "P0171": ("System too lean (bank 1)",
-              "Look for vacuum/intake leaks, a dirty MAF sensor, or weak fuel pump."),
-    "P0420": ("Catalyst efficiency below threshold (bank 1)",
-              "Often a failing catalytic converter or an O2 sensor; verify sensor first."),
-    "P0455": ("Large EVAP system leak",
-              "Check the gas cap first (reseat/replace), then EVAP hoses."),
+    # --- Fuel & air metering (P00xx-P01xx) ---
+    "P0100": ("Mass/volume air flow (MAF) circuit",
+              "Check the MAF connector/wiring; clean or replace the MAF sensor."),
+    "P0101": ("MAF sensor range/performance",
+              "Clean the MAF with MAF-safe spray; check the air filter and intake boot."),
+    "P0102": ("MAF sensor circuit low input",
+              "Inspect for intake leaks after the MAF; check wiring; replace the MAF."),
+    "P0103": ("MAF sensor circuit high input",
+              "Check the MAF wiring/connector; replace the MAF if out of range."),
+    "P0106": ("MAP/baro sensor range/performance",
+              "Check the MAP sensor and its vacuum line; replace if reading is off."),
+    "P0107": ("MAP sensor circuit low input",
+              "Inspect MAP wiring/connector; replace the MAP sensor."),
+    "P0108": ("MAP sensor circuit high input",
+              "Check the MAP vacuum line and wiring; replace the MAP sensor."),
+    "P0111": ("Intake air temp (IAT) sensor range/performance",
+              "Inspect/replace the IAT sensor; check the connector."),
+    "P0112": ("IAT sensor circuit low input",
+              "Check IAT wiring for a short; replace the sensor."),
+    "P0113": ("IAT sensor circuit high input",
+              "Inspect the IAT sensor and wiring; replace the sensor if faulty."),
+    "P0116": ("Engine coolant temp (ECT) sensor range/performance",
+              "Check coolant level; inspect/replace the ECT sensor."),
+    "P0117": ("ECT sensor circuit low input",
+              "Check ECT wiring for a short; replace the sensor."),
+    "P0118": ("ECT sensor circuit high input",
+              "Inspect the ECT connector/wiring; replace the sensor."),
+    "P0121": ("Throttle/pedal position sensor A range/performance",
+              "Clean the throttle body; check the TPS; inspect wiring."),
+    "P0122": ("Throttle/pedal position sensor A low input",
+              "Check TPS wiring/connector; replace the throttle position sensor."),
+    "P0123": ("Throttle/pedal position sensor A high input",
+              "Check TPS wiring for a short to power; replace the TPS."),
     "P0128": ("Coolant thermostat below regulating temperature",
               "Usually a stuck-open thermostat; replace it."),
+    "P0130": ("O2 sensor circuit (bank 1, sensor 1)",
+              "Inspect the upstream O2 sensor and wiring; replace the sensor."),
+    "P0131": ("O2 sensor circuit low voltage (B1S1)",
+              "Check for an exhaust leak and O2 wiring; replace the upstream O2 sensor."),
+    "P0132": ("O2 sensor circuit high voltage (B1S1)",
+              "Check for a rich condition; inspect O2 wiring; replace the sensor."),
+    "P0133": ("O2 sensor slow response (B1S1)",
+              "The upstream O2 sensor is aging; replace it."),
+    "P0134": ("O2 sensor no activity (B1S1)",
+              "Check O2 heater/wiring; replace the upstream O2 sensor."),
+    "P0135": ("O2 sensor heater circuit (B1S1)",
+              "Check the O2 heater fuse and wiring; usually replace the O2 sensor."),
+    "P0136": ("O2 sensor circuit (bank 1, sensor 2)",
+              "Inspect the downstream O2 sensor and wiring; replace the sensor."),
+    "P0137": ("O2 sensor circuit low voltage (B1S2)",
+              "Check for an exhaust leak; inspect wiring; replace the downstream O2."),
+    "P0138": ("O2 sensor circuit high voltage (B1S2)",
+              "Inspect O2 wiring; replace the downstream O2 sensor."),
+    "P0141": ("O2 sensor heater circuit (B1S2)",
+              "Check the downstream O2 heater circuit; usually replace the O2 sensor."),
+    "P0150": ("O2 sensor circuit (bank 2, sensor 1)",
+              "Bank 2 equivalent of P0130; inspect/replace the upstream O2 sensor."),
+    "P0151": ("O2 sensor low voltage (B2S1)",
+              "Check for an exhaust leak and wiring; replace the O2 sensor."),
+    "P0155": ("O2 sensor heater circuit (B2S1)",
+              "Check the O2 heater circuit; replace the bank-2 upstream O2 sensor."),
+    "P0161": ("O2 sensor heater circuit (B2S2)",
+              "Check the O2 heater circuit; replace the bank-2 downstream O2 sensor."),
+    "P0171": ("System too lean (bank 1)",
+              "Look for vacuum/intake leaks, a dirty MAF sensor, or weak fuel pump."),
+    "P0172": ("System too rich (bank 1)",
+              "Check for a leaking injector, high fuel pressure, or a dirty MAF/O2 sensor."),
+    "P0173": ("Fuel trim malfunction (bank 2)",
+              "Diagnose like lean/rich on bank 2: leaks, MAF, fuel pressure."),
+    "P0174": ("System too lean (bank 2)",
+              "Same as P0171 but bank 2: vacuum leaks, MAF, fuel delivery."),
+    "P0175": ("System too rich (bank 2)",
+              "Bank 2 equivalent of P0172: leaking injector, fuel pressure, MAF/O2."),
+    # --- Injector circuits (P02xx) ---
+    "P0201": ("Injector circuit - cylinder 1",
+              "Check injector 1 wiring/connector and resistance; replace if open/shorted."),
+    "P0202": ("Injector circuit - cylinder 2",
+              "Check injector 2 wiring/resistance; replace if faulty."),
+    "P0203": ("Injector circuit - cylinder 3",
+              "Check injector 3 wiring/resistance; replace if faulty."),
+    "P0204": ("Injector circuit - cylinder 4",
+              "Check injector 4 wiring/resistance; replace if faulty."),
+    "P0217": ("Engine over-temperature condition",
+              "Stop and let it cool. Check coolant, thermostat, water pump, radiator/fans."),
+    "P0219": ("Engine overspeed condition",
+              "Avoid over-revving; check for a downshift/throttle fault if unexpected."),
+    # --- Ignition / misfire (P03xx) ---
+    "P0300": ("Random/multiple cylinder misfire",
+              "Check spark plugs, coils, and fuel delivery; look for vacuum leaks."),
+    "P0301": ("Cylinder 1 misfire",
+              "Swap the coil/plug for cyl 1 with a neighbour; if the misfire moves, "
+              "that part is bad. Also check that injector and compression."),
+    "P0302": ("Cylinder 2 misfire",
+              "Swap the coil/plug with a neighbour to isolate; check injector/compression."),
+    "P0303": ("Cylinder 3 misfire",
+              "Swap the coil/plug with a neighbour to isolate; check injector/compression."),
+    "P0304": ("Cylinder 4 misfire",
+              "Swap the coil/plug with a neighbour to isolate; check injector/compression."),
+    "P0305": ("Cylinder 5 misfire",
+              "Swap the coil/plug with a neighbour to isolate; check injector/compression."),
+    "P0306": ("Cylinder 6 misfire",
+              "Swap the coil/plug with a neighbour to isolate; check injector/compression."),
+    "P0307": ("Cylinder 7 misfire",
+              "Swap the coil/plug with a neighbour to isolate; check injector/compression."),
+    "P0308": ("Cylinder 8 misfire",
+              "Swap the coil/plug with a neighbour to isolate; check injector/compression."),
+    "P0313": ("Misfire detected with low fuel",
+              "Refuel - misfires can set when the tank is nearly empty."),
+    "P0316": ("Misfire on startup (first 1000 revs)",
+              "Check plugs/coils and fuel pressure at cold start."),
+    "P0325": ("Knock sensor circuit (bank 1)",
+              "Inspect the knock sensor connector/wiring; replace the sensor if open/shorted."),
+    "P0330": ("Knock sensor 2 circuit (bank 2)",
+              "Inspect the bank-2 knock sensor and wiring; replace if faulty."),
+    "P0335": ("Crankshaft position sensor circuit",
+              "Check the crank sensor and wiring; replace the sensor (common no-start)."),
+    "P0336": ("Crankshaft position sensor range/performance",
+              "Inspect the reluctor/tone ring and crank sensor gap; replace the sensor."),
+    "P0340": ("Camshaft position sensor circuit",
+              "Check the cam sensor and wiring; replace the sensor; verify timing."),
+    "P0341": ("Camshaft position sensor range/performance",
+              "Check cam/crank correlation and timing; inspect the cam sensor."),
+    # --- Emissions / aux (P04xx) ---
+    "P0401": ("EGR insufficient flow",
+              "Clean the EGR valve and passages; check the EGR vacuum/electrical control."),
+    "P0402": ("EGR excessive flow",
+              "Check for a stuck-open EGR valve or a blocked DPFE/pressure sensor line."),
+    "P0404": ("EGR circuit range/performance",
+              "Inspect the EGR valve position sensor and wiring; clean/replace the valve."),
+    "P0411": ("Secondary air injection - incorrect flow",
+              "Check the air pump, hoses and check valves for the smog/air system."),
+    "P0420": ("Catalyst efficiency below threshold (bank 1)",
+              "Often a failing catalytic converter or an O2 sensor; verify the O2 first."),
+    "P0430": ("Catalyst efficiency below threshold (bank 2)",
+              "Bank 2 equivalent of P0420; verify the rear O2 sensor before the cat."),
+    "P0440": ("EVAP system (general) fault",
+              "Check the gas cap and EVAP hoses; a smoke test finds the leak."),
+    "P0441": ("EVAP incorrect purge flow",
+              "Inspect the purge valve and hoses; replace a stuck purge valve."),
     "P0442": ("Small EVAP system leak",
               "Reseat/replace the gas cap; inspect EVAP lines for small cracks."),
+    "P0443": ("EVAP purge control valve circuit",
+              "Check the purge valve wiring/connector; replace the purge valve."),
+    "P0446": ("EVAP vent control circuit",
+              "Inspect the vent valve (often clogged with debris) and its wiring."),
+    "P0455": ("Large EVAP system leak",
+              "Check the gas cap first (reseat/replace), then EVAP hoses and valves."),
+    "P0456": ("Very small EVAP leak",
+              "Usually the gas cap seal or a tiny hose crack; smoke-test the EVAP system."),
+    "P0457": ("EVAP leak - loose fuel cap",
+              "Tighten or replace the fuel cap, then clear the code."),
+    # --- Speed / idle / PCM (P05xx-P06xx) ---
+    "P0500": ("Vehicle speed sensor",
+              "Check the VSS and wiring; replace the speed sensor."),
+    "P0505": ("Idle air control system",
+              "Clean the throttle body and idle air control valve; check for vacuum leaks."),
+    "P0506": ("Idle speed lower than expected",
+              "Check for a dirty throttle body, vacuum leak, or IAC fault."),
+    "P0507": ("Idle speed higher than expected",
+              "Look for a vacuum leak or a stuck-open IAC/throttle plate."),
+    "P0520": ("Oil pressure sensor/switch circuit",
+              "Check oil level first; inspect the oil pressure sensor and wiring."),
+    "P0562": ("System voltage low",
+              "Test the battery and alternator; a weak battery or charging fault is common."),
+    "P0563": ("System voltage high",
+              "Check the alternator/voltage regulator for overcharging."),
+    "P0601": ("Internal control module memory checksum error",
+              "A PCM/ECM fault; reflash or replace the module (shop/dealer)."),
+    "P0606": ("PCM processor fault",
+              "Check module power/grounds; the ECM/PCM may need replacement."),
+    # --- Transmission & comms (P07xx, U0xxx) ---
+    "P0700": ("Transmission control system (malfunction)",
+              "A transmission code is stored; read the TCM sub-codes with a capable scanner."),
+    "P0705": ("Transmission range sensor circuit",
+              "Check/adjust the neutral safety/range switch; inspect its wiring."),
+    "P0715": ("Input/turbine speed sensor circuit",
+              "Inspect the transmission input speed sensor and wiring."),
+    "P0720": ("Output speed sensor circuit",
+              "Inspect the transmission output speed sensor and wiring."),
+    "P0730": ("Incorrect gear ratio",
+              "Check transmission fluid level/condition; a shift/clutch fault - see a shop."),
+    "P0740": ("Torque converter clutch circuit",
+              "Check the TCC solenoid and fluid; a converter/solenoid fault."),
+    "P0750": ("Shift solenoid A",
+              "Inspect the shift solenoid and wiring; check fluid condition."),
+    "U0100": ("Lost communication with ECM/PCM",
+              "Check ECU power/ground and the CAN bus wiring/connectors."),
+    "U0101": ("Lost communication with TCM",
+              "Check the transmission module's power, grounds and CAN wiring."),
+    "U0121": ("Lost communication with ABS module",
+              "Check the ABS module connector, power/ground and CAN bus."),
+}
+
+# Structural decoding so ANY well-formed code can be explained, even when it
+# isn't in DTC_FIXES. First letter = system; the digit after it says whether
+# the definition is generic (SAE, same on every car) or manufacturer-specific;
+# for P-codes the next digit names the subsystem.
+DTC_SYSTEMS = {"P": "Powertrain (engine/transmission)", "C": "Chassis",
+               "B": "Body", "U": "Network / communication"}
+DTC_P_SUBSYSTEMS = {
+    "0": "fuel/air metering & auxiliary emissions",
+    "1": "fuel & air metering",
+    "2": "fuel & air metering (injector circuit)",
+    "3": "ignition system or misfire",
+    "4": "auxiliary emission controls",
+    "5": "vehicle speed control & idle control",
+    "6": "computer output circuit",
+    "7": "transmission",
+    "8": "transmission",
+    "9": "transmission / drivetrain",
+}
+
+
+def describe_dtc(code: str) -> str:
+    """Explain the structure of any well-formed OBD-II code (e.g. P1234)."""
+    c = code.strip().upper()
+    if len(c) != 5 or c[0] not in DTC_SYSTEMS or not c[1:].isdigit():
+        return "Not a standard 5-character OBD-II code (like P0420)."
+    parts = [DTC_SYSTEMS[c[0]]]
+    parts.append("manufacturer-specific" if c[1] == "1" else "generic (same on every make)")
+    if c[0] == "P" and c[2] in DTC_P_SUBSYSTEMS:
+        parts.append(DTC_P_SUBSYSTEMS[c[2]])
+    return " / ".join(parts)
+
+
+# Release year per Apple model name (the model's launch year - an honest
+# "how old is this product" signal, since true manufacture dates aren't
+# available to apps and new serials are randomized).
+APPLE_RELEASE_YEARS = {
+    "iPhone 7": 2016, "iPhone 8": 2017, "iPhone X": 2017, "iPhone XS": 2018,
+    "iPhone XR": 2018, "iPhone 11": 2019, "iPhone 11 Pro": 2019,
+    "iPhone SE (2nd gen)": 2020, "iPhone 12 mini": 2020, "iPhone 12": 2020,
+    "iPhone 12 Pro": 2020, "iPhone 13": 2021, "iPhone 13 Pro": 2021,
+    "iPhone SE (3rd gen)": 2022, "iPhone 14": 2022, "iPhone 14 Pro": 2022,
+    "iPhone 15": 2023, "iPhone 15 Pro": 2023,
 }
 
 
@@ -1023,7 +1270,8 @@ def reference_as_dict() -> dict:
     """Device-free reference data for the app (model maps, car codes, serial rules)."""
     return {
         "apple_models": {
-            ptype: {"model": name, "soc": soc}
+            ptype: {"model": name, "soc": soc,
+                    "year": APPLE_RELEASE_YEARS.get(name)}
             for ptype, (name, soc) in APPLE_MODELS.items()
         },
         "qcom_platforms": QCOM_PLATFORMS,
@@ -1033,6 +1281,8 @@ def reference_as_dict() -> dict:
         },
         "apple_year_alphabet": _APPLE_YEAR_ALPHABET,
         "apple_week_alphabet": _APPLE_WEEK_ALPHABET,
+        "dtc_systems": DTC_SYSTEMS,
+        "dtc_p_subsystems": DTC_P_SUBSYSTEMS,
     }
 
 
@@ -1043,53 +1293,159 @@ def _decode_dtc_prefix(code: str) -> str:
     return systems.get(code[0].upper(), "Unknown system")
 
 
-def car_diagnose(port: str | None) -> int:
-    """Read stored diagnostic trouble codes over OBD-II and suggest fixes."""
+# Live PIDs worth showing, in a sensible dashboard order. Each is a python-OBD
+# command name; missing ones on a given car are skipped automatically.
+_LIVE_PIDS = [
+    "RPM", "SPEED", "ENGINE_LOAD", "COOLANT_TEMP", "INTAKE_TEMP",
+    "THROTTLE_POS", "MAF", "INTAKE_PRESSURE", "TIMING_ADVANCE",
+    "SHORT_FUEL_TRIM_1", "LONG_FUEL_TRIM_1", "SHORT_FUEL_TRIM_2",
+    "LONG_FUEL_TRIM_2", "FUEL_PRESSURE", "FUEL_LEVEL", "FUEL_RATE",
+    "O2_B1S1", "O2_B1S2", "COMMANDED_EQUIV_RATIO", "CATALYST_TEMP_B1S1",
+    "CONTROL_MODULE_VOLTAGE", "RUN_TIME", "DISTANCE_W_MIL", "AMBIANT_AIR_TEMP",
+]
+
+
+def _obd_connect(port: str | None):
+    """Import python-OBD and open a connection. Returns (obd, conn) or (None, None)."""
     try:
         import obd  # python-OBD; talks to an ELM327 adapter
     except ImportError:
         print("ERROR: python-OBD not installed (pip install obd).")
         print("You also need an ELM327 OBD-II adapter plugged into the car's")
         print("OBD-II port (usually under the dashboard) and the ignition on.")
-        return 2
-
-    print("Car OBD-II diagnostics")
-    print("-" * 22)
-    connection = obd.OBD(port) if port else obd.OBD()
-    if not connection.is_connected():
+        return None, None
+    conn = obd.OBD(port) if port else obd.OBD()
+    if not conn.is_connected():
         print("Could not connect to the vehicle. Check that:")
         print("  - the ELM327 adapter is seated in the OBD-II port,")
         print("  - the ignition is ON (engine running for live data),")
         print("  - the right serial port is given via --port (e.g. /dev/ttyUSB0,")
         print("    COM3, or a Bluetooth rfcomm device).")
-        return 1
+        return obd, None
+    return obd, conn
 
-    vin = connection.query(obd.commands.VIN)
+
+def _print_dtcs(obd, conn) -> int:
+    """Print stored DTCs with meanings/fixes. Returns the count."""
+    codes = conn.query(obd.commands.GET_DTC).value or []
+    if not codes:
+        print("  Trouble codes  : none stored.")
+        return 0
+    print(f"  Trouble codes  : {len(codes)} stored")
+    for code, desc in codes:
+        print(f"\n  {code}  [{describe_dtc(code)}]")
+        if desc:
+            print(f"      Meaning: {desc}")
+        if code in DTC_FIXES:
+            meaning, fix = DTC_FIXES[code]
+            print(f"      ({meaning})")
+            print(f"      Fix: {fix}")
+        else:
+            print("      Fix: look up this exact code for your make/model; a")
+            print("           scan-tool live-data check pinpoints the part.")
+    return len(codes)
+
+
+def _print_status(obd, conn) -> None:
+    """Readiness monitors + MIL state (the emissions 'I/M readiness' picture)."""
+    resp = conn.query(obd.commands.STATUS)
+    s = resp.value
+    if s is None:
+        print("  Readiness      : not reported by this vehicle.")
+        return
+    print(f"  Check-engine   : {'ON' if s.MIL else 'off'}  "
+          f"(ECU reports {s.DTC_count} code(s))")
+    print("  Readiness monitors (must be 'ready' to pass an emissions test):")
+    for name in dir(s):
+        test = getattr(s, name)
+        # python-OBD exposes each monitor as a Test with .available/.complete.
+        if hasattr(test, "available") and hasattr(test, "complete"):
+            if not test.available:
+                continue
+            state = "ready" if test.complete else "NOT ready"
+            print(f"      {name:<28}: {state}")
+
+
+def car_report(port: str | None, live: bool, monitors: bool, freeze: bool) -> int:
+    """Full read: VIN, DTCs, (optionally) readiness, freeze-frame and live data."""
+    obd, conn = _obd_connect(port)
+    if conn is None:
+        return 1 if obd is not None else 2
+
+    print("Car OBD-II report")
+    print("-" * 17)
+    vin = conn.query(obd.commands.VIN)
     if vin.value:
         print(f"  VIN            : {vin.value}")
+    _print_dtcs(obd, conn)
 
-    resp = connection.query(obd.commands.GET_DTC)
-    codes = resp.value or []
-    if not codes:
-        print("  Trouble codes  : none stored. No stored faults reported.")
-    else:
-        print(f"  Trouble codes  : {len(codes)} stored")
-        for code, desc in codes:
-            system = _decode_dtc_prefix(code)
-            print(f"\n  {code}  [{system}]")
-            if desc:
-                print(f"      Meaning: {desc}")
-            if code in DTC_FIXES:
-                meaning, fix = DTC_FIXES[code]
-                print(f"      ({meaning})")
-                print(f"      Fix: {fix}")
-            else:
-                print("      Fix: look up this exact code for your make/model; a")
-                print("           scan-tool live-data check pinpoints the part.")
-    connection.close()
-    print("\n  Note: codes point to a symptom, not always the root cause. A shop")
-    print("  scan tool with live data is authoritative before replacing parts.")
+    if monitors:
+        print("\nReadiness / monitors")
+        print("-" * 20)
+        _print_status(obd, conn)
+
+    if freeze:
+        print("\nFreeze frame (conditions when the code set)")
+        print("-" * 43)
+        fz = conn.query(obd.commands.GET_FREEZE_DTC)
+        if fz.value:
+            print(f"  Triggered by   : {fz.value}")
+        else:
+            print("  No freeze-frame code stored.")
+
+    if live:
+        print("\nLive data")
+        print("-" * 9)
+        shown = 0
+        for name in _LIVE_PIDS:
+            cmd = getattr(obd.commands, name, None)
+            if cmd is None or not conn.supports(cmd):
+                continue
+            r = conn.query(cmd)
+            if r.is_null():
+                continue
+            print(f"  {name:<24}: {r.value}")
+            shown += 1
+        if shown == 0:
+            print("  (no live PIDs available - is the engine running?)")
+
+    conn.close()
+    print("\n  Note: codes/data point to symptoms, not always the root cause.")
+    print("  Confirm with live data before replacing parts.")
     return 0
+
+
+def car_clear(port: str | None, assume_yes: bool) -> int:
+    """Clear stored DTCs and turn off the check-engine light (mode 04).
+
+    This is a WRITE to the car: it erases codes AND resets emissions readiness
+    monitors, so an emissions test will fail until you re-drive the cycle.
+    """
+    print("Clear car trouble codes")
+    print("-" * 23)
+    print("WARNING: this erases stored codes and resets emissions readiness.")
+    print("Only do it after you've noted the codes and fixed the cause.")
+    if not assume_yes:
+        try:
+            if input("Type 'yes' to clear: ").strip().lower() != "yes":
+                print("Aborted - nothing changed.")
+                return 1
+        except EOFError:
+            print("No confirmation (non-interactive). Re-run with --yes to clear.")
+            return 1
+    obd, conn = _obd_connect(port)
+    if conn is None:
+        return 1 if obd is not None else 2
+    conn.query(obd.commands.CLEAR_DTC)
+    conn.close()
+    print("Done. The light may take a drive cycle to fully clear; if the fault")
+    print("remains, the code will come back - that's the car telling you it's real.")
+    return 0
+
+
+def car_diagnose(port: str | None) -> int:
+    """Back-compat wrapper: DTCs plus readiness monitors."""
+    return car_report(port, live=False, monitors=True, freeze=False)
 
 
 # ---------------------------------------------------------------------------
@@ -1196,6 +1552,16 @@ def main(argv: list[str] | None = None) -> int:
                    help="target a car over OBD-II (needs python-OBD + ELM327)")
     p.add_argument("--port", metavar="DEV",
                    help="serial port for --car (e.g. /dev/ttyUSB0, COM3)")
+    p.add_argument("--live", action="store_true",
+                   help="--car: stream live sensor data (RPM, temps, fuel trims, O2, ...)")
+    p.add_argument("--monitors", action="store_true",
+                   help="--car: show emissions readiness monitors + check-engine state")
+    p.add_argument("--freeze", action="store_true",
+                   help="--car: show freeze-frame (conditions when a code set)")
+    p.add_argument("--clear", action="store_true",
+                   help="--car: clear stored codes / reset the check-engine light")
+    p.add_argument("--yes", action="store_true",
+                   help="skip the confirmation prompt for --clear")
     p.add_argument("--net", metavar="HOST[:PORT]",
                    help="connect adb over the network first (Android TV / Fire TV "
                         "/ boxes); e.g. --net 192.168.1.50:5555")
@@ -1255,7 +1621,16 @@ def main(argv: list[str] | None = None) -> int:
 
     # Car over OBD-II (python-OBD + ELM327 adapter).
     if args.car:
-        return car_diagnose(args.port)  # diagnostics is the only action
+        if args.clear:
+            return car_clear(args.port, args.yes)
+        # Default to a full report; --live/--monitors/--freeze narrow or extend it.
+        any_car_action = args.live or args.monitors or args.freeze
+        return car_report(
+            args.port,
+            live=args.live or not any_car_action,
+            monitors=args.monitors or not any_car_action,
+            freeze=args.freeze or not any_car_action,
+        )
 
     # Network adb for Android TVs / boxes / head-units.
     if args.net:

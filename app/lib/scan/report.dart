@@ -27,6 +27,18 @@ class DeviceReport {
   String? makeModel;
   String os = '';
 
+  // --- Hardware identity (filled where the OS exposes it) ---
+  String? cpu; // CPU / SoC name, e.g. "Intel Core i7-1065G7" or "Snapdragon 865"
+  String? gpu; // graphics chip (Windows only, usually)
+  String? arch; // CPU architecture, e.g. "arm64", "x86_64"
+  int? cpuCores;
+
+  /// Apple product type (e.g. "iPhone14,5") for mapping to model + chip + year.
+  String? appleProductType;
+
+  /// Android SoC platform codename (ro.board.platform) for chip mapping.
+  String? androidPlatform;
+
   int? batteryLevel; // percent
   bool? pluggedIn;
   bool? lowPowerMode;

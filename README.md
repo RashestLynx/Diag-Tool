@@ -102,7 +102,10 @@ python device_export.py --android --diagnose     # battery/storage/thermal/crash
 python device_export.py --ios --photos --out ./iphone_photos   # pull the camera roll
 python device_export.py --ios --backup --out ./iphone_backup   # full iPhone backup
 python device_export.py --camera --photos --out ./cam   # a camera over PTP (needs gphoto2)
-python device_export.py --car --port /dev/ttyUSB0       # car trouble codes (needs python-OBD)
+python device_export.py --car --port /dev/ttyUSB0       # full car report (codes, readiness, live)
+python device_export.py --car --live                    # live sensor data (RPM, temps, fuel trims...)
+python device_export.py --car --monitors                # emissions readiness + check-engine state
+python device_export.py --car --clear                   # clear codes / reset the light (asks first)
 python device_export.py --apple-model iPhone14,5        # offline: model + chip, no device
 ```
 

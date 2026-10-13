@@ -113,6 +113,37 @@ class _DiagnoseScreenState extends State<DiagnoseScreen> {
     );
   }
 
+  Widget _dtcFallback(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final raw = _dtcController.text.trim().toUpperCase();
+    if (raw.isEmpty) {
+      return Text('Enter a code above.', style: TextStyle(color: scheme.onSurfaceVariant));
+    }
+    final decoded = widget.reference.describeDtc(raw);
+    if (decoded == null) {
+      return Text('"$raw" isn’t a standard OBD-II code (they look like P0420, '
+          'C1234, B0010, U0100).', style: TextStyle(color: scheme.onSurfaceVariant));
+    }
+    // Valid code we don't have a detailed entry for: explain its structure.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(raw, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        Text(decoded, style: const TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        Text(
+          raw[1] == '1'
+              ? 'This is a manufacturer-specific code, so its exact meaning differs by '
+                  'brand. Search "$raw <your make/model>" for the definition.'
+              : 'We don’t have a detailed fix for this exact code yet. Search '
+                  '"$raw" for your make/model; a shop scan tool with live data is authoritative.',
+          style: TextStyle(color: scheme.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+
   Widget _carCodeCard(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Column(
@@ -148,12 +179,7 @@ class _DiagnoseScreenState extends State<DiagnoseScreen> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: _dtc == null
-                  ? Text(
-                      _dtcController.text.trim().isEmpty
-                          ? 'Enter a code above.'
-                          : 'Not in the local list. Search "${_dtcController.text.trim().toUpperCase()} '
-                              '<your car make/model>" - a shop scan tool with live data is authoritative.',
-                      style: TextStyle(color: scheme.onSurfaceVariant))
+                  ? _dtcFallback(context)
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

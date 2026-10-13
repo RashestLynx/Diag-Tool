@@ -60,7 +60,7 @@ class _HomeState extends State<_Home> {
         }
         final (knowledge, recovery, reference) = snap.data!;
         final screens = [
-          ScanScreen(knowledge: knowledge),
+          ScanScreen(knowledge: knowledge, reference: reference),
           DiagnoseScreen(knowledge: knowledge, reference: reference),
           const ControllerScreen(),
           RecoveryScreen(recovery: recovery),

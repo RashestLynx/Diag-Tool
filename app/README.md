@@ -6,8 +6,10 @@ codebase builds native apps for **iPhone/iPad, Android, Windows and macOS**.
 Three tabs:
 
 - **Scan** - identifies the device it's running on (phone, tablet, laptop,
-  desktop) and checks storage, memory, battery health, temperature and uptime,
-  with fixes for anything that needs attention.
+  desktop), including chip/CPU, GPU (where the OS exposes it), architecture,
+  core count and - for Apple devices - model and release year, then checks
+  storage, memory, battery health, temperature and uptime, with fixes. It reads
+  only what the OS gives an app.
 - **Diagnose** - describe a problem in plain words, or pick a device and tap a
   symptom. Shows likely causes, most likely first, each with step-by-step
   fixes. Safety issues (swollen battery, liquid damage) are flagged.
@@ -37,7 +39,10 @@ Three tabs:
   model + chip lookup, an Android Qualcomm platform-code -> Snapdragon lookup,
   and a manufacture-date estimate for legacy Apple serials.
 - **Diagnose** also includes a **car trouble-code (OBD-II)** lookup: enter a
-  check-engine code like P0420 for its meaning and fix.
+  check-engine code like P0420 for its meaning and fix. It has ~90 standardized
+  generic codes in detail, and decodes the structure of any other valid code
+  (system, generic vs manufacturer-specific, subsystem). Live reading from the
+  car's OBD-II port is done by `device_export.py --car` with an ELM327 adapter.
 
 The diagnosis advice (`assets/knowledge.json`), account-recovery guidance
 (`assets/recovery.json`) and device reference data (`assets/reference.json` -

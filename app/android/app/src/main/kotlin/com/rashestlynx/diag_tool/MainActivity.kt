@@ -15,6 +15,7 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channel).setMethodCallHandler { call, result ->
             when (call.method) {
                 "batteryExtras" -> result.success(batteryExtras())
+                "deviceExtras" -> result.success(deviceExtras())
                 else -> result.notImplemented()
             }
         }
@@ -35,6 +36,21 @@ class MainActivity : FlutterActivity() {
             "temperature" to temperature, // tenths of a degree C
             "health" to healthLabel(healthCode),
             "cycleCount" to cycleCount
+        )
+    }
+
+    // SoC manufacturer/model (Android 12+), board platform codename, and the
+    // number of CPU cores the runtime sees.
+    private fun deviceExtras(): Map<String, Any?> {
+        val socMfr = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+            android.os.Build.SOC_MANUFACTURER else ""
+        val socModel = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+            android.os.Build.SOC_MODEL else ""
+        return mapOf(
+            "socManufacturer" to socMfr,
+            "socModel" to socModel,
+            "board" to android.os.Build.BOARD,
+            "cores" to Runtime.getRuntime().availableProcessors()
         )
     }
 
