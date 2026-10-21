@@ -33,10 +33,16 @@ class _CarScreenState extends State<CarScreen> {
   final Map<String, ObdReading> _readings = {};
   List<String> _dtcs = [];
   String? _deviceName;
+  bool _polling = false;
 
   // The PIDs we stream live. All are decoded by the tested protocol layer.
   static const _livePids = [0x0C, 0x0D, 0x04, 0x05, 0x0F, 0x11, 0x10, 0x0E,
     0x06, 0x07, 0x0B, 0x42, 0x2F];
+
+  /// Name to show for a scan result. iOS often leaves the cached device name
+  /// empty until the first connection, so fall back to the advertised name.
+  static String _nameOf(ScanResult r) =>
+      r.device.platformName.isNotEmpty ? r.device.platformName : r.advertisementData.advName;
 
   bool get _supported =>
       !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
@@ -59,21 +65,34 @@ class _CarScreenState extends State<CarScreen> {
       _error = null;
     });
     try {
+      final problem = await _bluetoothProblem();
+      if (problem != null) {
+        setState(() {
+          _stage = _Stage.error;
+          _error = problem;
+        });
+        return;
+      }
       _scanSub?.cancel();
       _scanSub = FlutterBluePlus.scanResults.listen((results) {
+        if (!mounted) return;
         setState(() {
           _found
             ..clear()
-            ..addAll(results.where((r) => r.device.platformName.isNotEmpty));
+            ..addAll(results.where((r) => _nameOf(r).isNotEmpty));
           // Show likely OBD adapters first.
           _found.sort((a, b) {
-            final ao = BleObdTransport.looksLikeObd(a.device.platformName) ? 0 : 1;
-            final bo = BleObdTransport.looksLikeObd(b.device.platformName) ? 0 : 1;
+            final ao = BleObdTransport.looksLikeObd(_nameOf(a)) ? 0 : 1;
+            final bo = BleObdTransport.looksLikeObd(_nameOf(b)) ? 0 : 1;
             return ao.compareTo(bo);
           });
         });
       });
       await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
+      // startScan returns as soon as scanning begins; wait for the timeout so
+      // the button comes back once the scan is over.
+      await FlutterBluePlus.isScanning.where((scanning) => !scanning).first;
+      if (mounted && _stage == _Stage.scanning) setState(() => _stage = _Stage.idle);
     } catch (e) {
       setState(() {
         _stage = _Stage.error;
@@ -82,10 +101,42 @@ class _CarScreenState extends State<CarScreen> {
     }
   }
 
-  Future<void> _connect(BluetoothDevice device) async {
+  /// A plain-language reason Bluetooth can't be used right now, or null if it's
+  /// ready. On iOS the state starts as "unknown" for a moment, so wait briefly.
+  Future<String?> _bluetoothProblem() async {
+    if (!await FlutterBluePlus.isSupported) return 'This device has no Bluetooth LE.';
+    final state = await FlutterBluePlus.adapterState
+        .where((s) => s != BluetoothAdapterState.unknown && s != BluetoothAdapterState.turningOn)
+        .first
+        .timeout(const Duration(seconds: 3), onTimeout: () => BluetoothAdapterState.unknown);
+    switch (state) {
+      case BluetoothAdapterState.on:
+        return null;
+      case BluetoothAdapterState.unauthorized:
+        return Platform.isIOS
+            ? 'Diag Tool isn\u2019t allowed to use Bluetooth. Turn it on in '
+                'Settings \u2192 Diag Tool \u2192 Bluetooth, then scan again.'
+            : 'Bluetooth permission was denied. Allow it in the system settings, then scan again.';
+      case BluetoothAdapterState.off:
+        if (Platform.isAndroid) {
+          try {
+            await FlutterBluePlus.turnOn();
+            return null;
+          } catch (_) {}
+        }
+        return Platform.isIOS
+            ? 'Bluetooth is off. Turn it on in Control Center or Settings \u2192 Bluetooth, then scan again.'
+            : 'Bluetooth is off. Turn it on, then scan again.';
+      default:
+        return null; // Unknown/unavailable: let the scan try and report any error.
+    }
+  }
+
+  Future<void> _connect(ScanResult result) async {
+    final device = result.device;
     setState(() {
       _stage = _Stage.connecting;
-      _deviceName = device.platformName;
+      _deviceName = _nameOf(result);
       _error = null;
     });
     await FlutterBluePlus.stopScan();
@@ -110,19 +161,30 @@ class _CarScreenState extends State<CarScreen> {
 
   Future<void> _pollOnce() async {
     final conn = _conn;
-    if (conn == null) return;
-    for (final pid in _livePids) {
-      final def = standardPidsByNumber[pid];
-      if (def == null) continue;
-      final r = await conn.read(def);
-      if (r != null && mounted) setState(() => _readings[r.name] = r);
+    // Skip a tick if the last round is still running: a slow BLE link can take
+    // longer than the timer period, and overlapping requests garble replies.
+    if (conn == null || _polling) return;
+    _polling = true;
+    try {
+      for (final pid in _livePids) {
+        if (_conn != conn) return; // disconnected mid-round
+        final def = standardPidsByNumber[pid];
+        if (def == null) continue;
+        final r = await conn.read(def);
+        if (r != null && mounted) setState(() => _readings[r.name] = r);
+      }
+    } catch (_) {
+      // Link dropped mid-read; the next tick (or Disconnect) handles it.
+    } finally {
+      _polling = false;
     }
   }
 
   Future<void> _disconnect() async {
     _poll?.cancel();
-    await _conn?.dispose();
+    final conn = _conn;
     _conn = null;
+    await conn?.dispose();
     setState(() {
       _stage = _Stage.idle;
       _readings.clear();
@@ -155,6 +217,20 @@ class _CarScreenState extends State<CarScreen> {
         Text('Plug a Bluetooth ELM327 adapter into the OBD-II port (under the dash), '
             'turn the ignition on, then scan and tap it.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+        if (Platform.isIOS) ...[
+          const SizedBox(height: 12),
+          Card(
+            color: scheme.secondaryContainer,
+            child: const ListTile(
+              leading: Icon(Icons.info_outline),
+              title: Text('iPhone needs a Bluetooth LE adapter'),
+              subtitle: Text('iPhones can only talk to Bluetooth LE (4.0+) OBD adapters, such as '
+                  'Vgate iCar Pro BLE, vLinker MC+ / FS or OBDLink CX / MX+. Cheap '
+                  'classic-Bluetooth and Wi-Fi ELM327s won\u2019t show up. Don\u2019t pair it in '
+                  'iPhone Settings \u2014 just scan here.'),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: _stage == _Stage.scanning ? null : _startScan,
@@ -165,15 +241,17 @@ class _CarScreenState extends State<CarScreen> {
         ),
         const SizedBox(height: 16),
         ..._found.map((r) {
-          final isObd = BleObdTransport.looksLikeObd(r.device.platformName);
+          final name = _nameOf(r);
+          final isObd = BleObdTransport.looksLikeObd(name);
           return Card(
             child: ListTile(
               leading: Icon(isObd ? Icons.car_repair : Icons.bluetooth,
                   color: isObd ? scheme.primary : null),
-              title: Text(r.device.platformName),
-              subtitle: Text(r.device.remoteId.str),
+              title: Text(name),
+              // iOS hides the real address; its per-phone UUID means nothing to people.
+              subtitle: Platform.isIOS ? null : Text(r.device.remoteId.str),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => _connect(r.device),
+              onTap: () => _connect(r),
             ),
           );
         }),

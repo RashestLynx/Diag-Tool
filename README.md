@@ -31,14 +31,36 @@ Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 - **iPhone (unsigned .ipa, sideload):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-ios-unsigned.ipa
 - **All releases:** https://github.com/RashestLynx/Diag-Tool/releases
 
-> The iPhone `.ipa` is **unsigned**. Install it with a sideloading tool -
-> [Sideloadly](https://sideloadly.io) or [AltStore](https://altstore.io) - which
-> signs it with your own Apple ID on your computer. (Free Apple IDs work; the app
-> then needs re-signing every 7 days, which those tools can automate.)
+> **iPhone link not working?** The `.ipa` only appears after a successful
+> GitHub Actions run of the iOS job (it needs a Mac build machine). If the
+> link gives "Not Found", check the repo's **Actions** tab - a billing lock on
+> the GitHub account stops every job before it starts.
+
+### Installing on iPhone with Sideloadly
+
+The `.ipa` is **unsigned**; [Sideloadly](https://sideloadly.io) (or
+[AltStore](https://altstore.io)) signs it with your own Apple ID.
+
+1. On a Windows PC or Mac, install Sideloadly (on Windows also install iTunes
+   and iCloud from apple.com, not the Microsoft Store).
+2. Download `diag-tool-ios-unsigned.ipa` from the link above.
+3. Plug in the iPhone, unlock it and tap **Trust**.
+4. Drag the `.ipa` into Sideloadly, enter your Apple ID, press **Start**.
+5. On the iPhone: **Settings -> General -> VPN & Device Management** -> trust
+   your Apple ID. On iOS 16+ also turn on **Settings -> Privacy & Security ->
+   Developer Mode** (the phone restarts).
+
+With a free Apple ID the app stops opening after **7 days** - re-run
+Sideloadly (or turn on its auto-refresh) to renew it. A paid Apple Developer
+account makes it last a year.
+
+**Car tab on iPhone:** iOS apps can only use **Bluetooth LE** OBD-II
+adapters (e.g. Vgate iCar Pro BLE, vLinker MC+/FS, OBDLink CX/MX+). Classic
+Bluetooth and Wi-Fi ELM327s won't appear. Don't pair the adapter in iPhone
+Settings - scan for it inside the app.
 
 > The desktop/Android builds are unsigned, so your OS will show an
-> "unknown developer" prompt the first time. iPhone needs an Apple-signed
-> build (see [`app/README.md`](app/README.md)).
+> "unknown developer" prompt the first time.
 
 Clone the source:
 

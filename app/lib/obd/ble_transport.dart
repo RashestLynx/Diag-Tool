@@ -4,7 +4,11 @@
 //
 // Most BLE ELM327 clones expose a serial-like service (commonly FFF0 / FFE0)
 // with one characteristic for writing commands and one that notifies replies -
-// sometimes the same characteristic. We auto-pick by characteristic properties.
+// sometimes the same characteristic. We auto-pick by characteristic properties,
+// preferring a known ELM327 service that has both (see pickSerialPair).
+//
+// BLE is the only kind of adapter an iPhone can use: iOS apps can't open
+// classic-Bluetooth serial (SPP) links, so classic ELM327s never show up there.
 
 import 'dart:async';
 import 'dart:convert';
@@ -34,12 +38,21 @@ class BleObdTransport implements ObdTransport {
   Future<void> connect({Duration timeout = const Duration(seconds: 15)}) async {
     await device.connect(license: License.nonprofit, timeout: timeout, autoConnect: false);
     final services = await device.discoverServices();
-    for (final s in services) {
-      for (final c in s.characteristics) {
-        final p = c.properties;
-        if (_notifyChar == null && (p.notify || p.indicate)) _notifyChar = c;
-        if (_writeChar == null && (p.write || p.writeWithoutResponse)) _writeChar = c;
-      }
+    final pair = pickSerialPair([
+      for (final s in services)
+        BleServiceInfo(s.serviceUuid.str128, [
+          for (final c in s.characteristics)
+            BleCharInfo(
+              c.characteristicUuid.str128,
+              write: c.properties.write || c.properties.writeWithoutResponse,
+              notify: c.properties.notify || c.properties.indicate,
+            ),
+        ]),
+    ]);
+    if (pair != null) {
+      final chars = services[pair.service].characteristics;
+      _writeChar = chars[pair.write];
+      _notifyChar = chars[pair.notify];
     }
     if (_writeChar == null || _notifyChar == null) {
       await device.disconnect();
@@ -71,6 +84,44 @@ class BleObdTransport implements ObdTransport {
     await _incoming.close();
   }
 
+  /// Known ELM327 serial service UUIDs (16-bit ones in 128-bit form), best first.
+  static const knownServices = [
+    '0000fff0-0000-1000-8000-00805f9b34fb', // most clones
+    '0000ffe0-0000-1000-8000-00805f9b34fb', // HM-10 style modules
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // Vgate / vLinker
+    '000018f0-0000-1000-8000-00805f9b34fb', // some Vgate iCar Pro units
+  ];
+
+  /// Standard services that are never the adapter's serial link.
+  static const _systemServices = {
+    '00001800-0000-1000-8000-00805f9b34fb', // Generic Access
+    '00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
+    '0000180a-0000-1000-8000-00805f9b34fb', // Device Information
+    '0000180f-0000-1000-8000-00805f9b34fb', // Battery
+  };
+
+  /// Pick the write + notify characteristics to talk over. Prefers a known
+  /// ELM327 service, then any other service that has both, so a stray
+  /// notify characteristic in an unrelated service is never chosen.
+  static ({int service, int write, int notify})? pickSerialPair(List<BleServiceInfo> services) {
+    int rank(String uuid) {
+      final i = knownServices.indexOf(uuid.toLowerCase());
+      return i >= 0 ? i : knownServices.length;
+    }
+
+    final order = [
+      for (var i = 0; i < services.length; i++)
+        if (!_systemServices.contains(services[i].uuid.toLowerCase())) i,
+    ]..sort((a, b) => rank(services[a].uuid).compareTo(rank(services[b].uuid)));
+    for (final si in order) {
+      final chars = services[si].chars;
+      final w = chars.indexWhere((c) => c.write);
+      final n = chars.indexWhere((c) => c.notify);
+      if (w >= 0 && n >= 0) return (service: si, write: w, notify: n);
+    }
+    return null;
+  }
+
   /// True if a device's advertised name looks like an OBD adapter.
   static bool looksLikeObd(String name) {
     final n = name.toLowerCase();
@@ -78,4 +129,19 @@ class BleObdTransport implements ObdTransport {
         n.contains('viecar') || n.contains('konnwei') || n.contains('ios-vlink') ||
         n.contains('vlink') || n.contains('scan');
   }
+}
+
+/// Plain description of a GATT service, so [BleObdTransport.pickSerialPair]
+/// can be unit-tested without a real Bluetooth device.
+class BleServiceInfo {
+  const BleServiceInfo(this.uuid, this.chars);
+  final String uuid;
+  final List<BleCharInfo> chars;
+}
+
+class BleCharInfo {
+  const BleCharInfo(this.uuid, {this.write = false, this.notify = false});
+  final String uuid;
+  final bool write;
+  final bool notify;
 }

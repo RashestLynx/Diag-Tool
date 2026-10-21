@@ -68,6 +68,11 @@
 	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Diag-Tool connects to a Bluetooth OBD-II (ELM327) adapter to read your car’s live data and trouble codes.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<!-- Keep the OBD adapter link alive if the screen locks mid-read. -->
+		<string>bluetooth-central</string>
+	</array>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Diag-Tool connects to a Bluetooth OBD-II (ELM327) adapter to read your car’s live data and trouble codes.</string>
 </dict>
