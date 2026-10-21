@@ -160,7 +160,7 @@ jobs:
       # it with your own Apple ID at install time.
       - name: Package unsigned .ipa
         run: |
-          cd app/build/ios/iphoneos
+          cd build/ios/iphoneos
           mkdir -p Payload
           cp -R Runner.app Payload/Runner.app
           zip -qr "$GITHUB_WORKSPACE/diag-tool-ios-unsigned.ipa" Payload
