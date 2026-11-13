@@ -4,7 +4,7 @@ Tells you **what's going on** with an electronic device, **how to fix it**, and
 **what kind of device it is**. Comes in two forms:
 
 - a **command-line tool** (`diag_tool.py`, this file), and
-- a **cross-platform app** for iPhone/iPad, Android, Windows and macOS, in
+- a **cross-platform app** for iPhone/iPad, Android, Windows, macOS and Linux, in
   [`app/`](app/) - which adds a live PS5/Xbox controller tester.
 
 Two companion scripts handle real connected devices: `phone_info.py`
@@ -12,12 +12,31 @@ Two companion scripts handle real connected devices: `phone_info.py`
 specs and pull data off an **unlocked, trusted** phone, camera or car - see
 below).
 
-Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
-`scan` results on Windows/macOS.)
+Pure Python 3.9+, no dependencies. Runs on Windows, macOS and Linux (on Linux,
+`scan` reads `/sys` and `/proc` directly). (Optional: `pip install psutil` for
+fuller `scan` results on Windows/macOS.)
 
 ## Download
 
-**Stable release — v1.0:**
+### Linux - quick install
+
+**One command** (installs for your user, adds Diag-Tool to your app menu, no sudo):
+
+```
+curl -fsSL https://raw.githubusercontent.com/RashestLynx/Diag-Tool/HEAD/install-linux.sh | bash
+```
+
+Run the same command again to update. To remove it:
+`curl -fsSL https://raw.githubusercontent.com/RashestLynx/Diag-Tool/HEAD/install-linux.sh | bash -s -- --uninstall`
+
+**Or download directly:**
+[**diag-tool-linux.tar.gz**](https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz)
+(64-bit x86, about 10 MB) - unpack it and run `./diag_tool`. See
+[Using on Linux](#using-on-linux) for details.
+
+### All platforms
+
+**Stable release — v1.0** (Linux arrives in the next release; use the latest build below):
 
 - **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-android.apk
 - **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-windows.zip
@@ -28,6 +47,7 @@ Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 - **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-android.apk
 - **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-windows.zip
 - **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-macos.zip
+- **Linux (.tar.gz, x64):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz
 - **iPhone (unsigned .ipa, sideload):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-ios-unsigned.ipa
 - **All releases:** https://github.com/RashestLynx/Diag-Tool/releases
 
@@ -35,6 +55,82 @@ Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 > GitHub Actions run of the iOS job (it needs a Mac build machine). If the
 > link gives "Not Found", check the repo's **Actions** tab - a billing lock on
 > the GitHub account stops every job before it starts.
+
+### Using on Linux
+
+Works on Ubuntu, Debian, Mint, Fedora, Arch and most other desktop distros
+(64-bit x86 PCs). There are two ways to use it - the command-line tool, or the
+app with a window.
+
+#### Command-line tool
+
+Needs Python 3.9+ (already installed on almost every distro) and `git`.
+
+```
+sudo apt install git python3        # Ubuntu/Debian/Mint
+sudo dnf install git python3        # Fedora
+sudo pacman -S git python           # Arch
+
+git clone https://github.com/RashestLynx/Diag-Tool.git
+cd Diag-Tool
+python3 diag_tool.py scan
+```
+
+Everything in [Commands](#commands) works the same - just type `python3`
+instead of `python`. On Linux, `scan` reads hardware info straight from `/sys`
+and `/proc`, so it doesn't need `psutil`. To update later, `cd Diag-Tool` and
+run `git pull`.
+
+For connected devices (`device_export.py`), install the tool for the device
+you're using:
+
+```
+sudo apt install adb                # Android phones (Fedora: android-tools)
+sudo apt install gphoto2            # cameras
+pip install --user pymobiledevice3  # iPhones
+pip install --user obd              # cars (ELM327 adapter)
+```
+
+A USB car adapter usually shows up as `/dev/ttyUSB0`. If you get "permission
+denied", add yourself to the serial group and log out and back in:
+`sudo usermod -aG dialout $USER` (on Arch the group is `uucp`).
+
+#### App
+
+Quickest way - one command installs it and adds it to your app menu:
+
+```
+curl -fsSL https://raw.githubusercontent.com/RashestLynx/Diag-Tool/HEAD/install-linux.sh | bash
+```
+
+Then open **Diag-Tool** from your app menu, or type `diag-tool` in a terminal.
+
+Or install it by hand from the
+[direct download](https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz):
+
+```
+cd ~/Downloads
+wget https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz
+mkdir -p diag-tool && tar -xzf diag-tool-linux.tar.gz -C diag-tool
+./diag-tool/diag_tool
+```
+
+Keep the whole `diag-tool` folder together - the `diag_tool` program needs the
+`lib` and `data` folders next to it. You can move the folder anywhere (for
+example `~/Apps/diag-tool`).
+
+- **Needs GTK 3**, which is already on Ubuntu, Fedora, Mint and most desktops.
+  If it won't start, install it: `sudo apt install libgtk-3-0`.
+- **Car tab:** uses Bluetooth LE adapters through BlueZ, so Bluetooth must be
+  on (`sudo systemctl enable --now bluetooth`). Scan for the adapter inside the
+  app - don't pair it in system settings first.
+- **Controller tab:** plug the controller in by USB or connect it over
+  Bluetooth first. If it doesn't show up, your user needs access to
+  `/dev/input` - on most distros a controller plugged in while you're logged in
+  just works. Battery level and touchpad readout are only available on
+  iPhone/iPad and Mac.
+- **Doesn't open, or "permission denied"?** Make it runnable:
+  `chmod +x diag-tool/diag_tool`.
 
 ### Installing on iPhone with Sideloadly
 
@@ -70,7 +166,7 @@ git clone -b ccr-2c5184d8-u5e4pj https://github.com/RashestLynx/Diag-Tool.git
 
 ## Building the apps
 
-GitHub Actions builds the Android APK and Windows/macOS apps on every push
+GitHub Actions builds the Android APK and Windows/macOS/Linux apps on every push
 (see [`.github/workflows/build.yml`](.github/workflows/build.yml)) and uploads
 them as downloadable artifacts - open the run under the repo's **Actions** tab
 and grab the one you need. To build locally, see [`app/README.md`](app/README.md).

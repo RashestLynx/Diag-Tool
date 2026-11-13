@@ -1,7 +1,7 @@
 # Diag-Tool app
 
 A cross-platform app that diagnoses problems with electronics. One Flutter
-codebase builds native apps for **iPhone/iPad, Android, Windows and macOS**.
+codebase builds native apps for **iPhone/iPad, Android, Windows, macOS and Linux**.
 
 Three tabs:
 
@@ -76,11 +76,13 @@ flutter build apk           # Android
 flutter build ios           # iPhone/iPad  (needs a Mac + Xcode)
 flutter build macos         # macOS        (needs a Mac + Xcode)
 flutter build windows       # Windows      (needs Visual Studio)
+flutter build linux         # Linux        (needs clang, cmake, ninja, GTK 3 dev files)
 ```
 
 iOS and macOS must be built on a Mac; Windows on a Windows machine with the
-"Desktop development with C++" workload. Android can be built anywhere with the
-Android SDK installed.
+"Desktop development with C++" workload. Linux is built on Linux - on Ubuntu/Debian first run
+`sudo apt install clang cmake ninja-build pkg-config libgtk-3-dev`. Android can
+be built anywhere with the Android SDK installed.
 
 ## How the scan gets its data
 
@@ -111,7 +113,8 @@ Controller battery level and DualSense touchpad position come from a native
 platform channel using Apple's GameController framework, so they appear on
 **iOS and macOS only** (`ios/Runner/ControllerInfoReader.swift` and the macOS
 copy). Android doesn't expose a gamepad's battery or touchpad to apps, and on
-Windows it would require raw HID parsing; on those platforms the card is hidden.
+Windows and Linux it would require raw HID parsing; on those platforms the card
+is hidden.
 The Dart side (`lib/controller/controller_info.dart`) returns null when no
 native handler is present, so nothing breaks.
 
