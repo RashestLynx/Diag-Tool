@@ -4,7 +4,7 @@ Tells you **what's going on** with an electronic device, **how to fix it**, and
 **what kind of device it is**. Comes in two forms:
 
 - a **command-line tool** (`diag_tool.py`, this file), and
-- a **cross-platform app** for iPhone/iPad, Android, Windows and macOS, in
+- a **cross-platform app** for iPhone/iPad, Android, Windows, macOS and Linux, in
   [`app/`](app/) - which adds a live PS5/Xbox controller tester.
 
 Two companion scripts handle real connected devices: `phone_info.py`
@@ -12,8 +12,9 @@ Two companion scripts handle real connected devices: `phone_info.py`
 specs and pull data off an **unlocked, trusted** phone, camera or car - see
 below).
 
-Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
-`scan` results on Windows/macOS.)
+Pure Python 3.9+, no dependencies. Runs on Windows, macOS and Linux (on Linux,
+`scan` reads `/sys` and `/proc` directly). (Optional: `pip install psutil` for
+fuller `scan` results on Windows/macOS.)
 
 ## Download
 
@@ -28,6 +29,7 @@ Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 - **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-android.apk
 - **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-windows.zip
 - **macOS (.zip with .app):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-macos.zip
+- **Linux (.tar.gz, x64):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz
 - **iPhone (unsigned .ipa, sideload):** https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-ios-unsigned.ipa
 - **All releases:** https://github.com/RashestLynx/Diag-Tool/releases
 
@@ -35,6 +37,20 @@ Pure Python 3.9+, no dependencies. (Optional: `pip install psutil` for fuller
 > GitHub Actions run of the iOS job (it needs a Mac build machine). If the
 > link gives "Not Found", check the repo's **Actions** tab - a billing lock on
 > the GitHub account stops every job before it starts.
+
+### Running on Linux
+
+Download `diag-tool-linux.tar.gz`, then:
+
+```
+mkdir diag-tool && tar -xzf diag-tool-linux.tar.gz -C diag-tool
+./diag-tool/diag_tool
+```
+
+It needs GTK 3 (already on Ubuntu, Fedora, Mint and most desktops). The
+**Car** tab uses Bluetooth LE through BlueZ, so `bluetoothd` must be running.
+For the **Controller** tab, your user needs read access to `/dev/input`
+(on most distros, controllers plugged in while you're logged in just work).
 
 ### Installing on iPhone with Sideloadly
 
@@ -70,7 +86,7 @@ git clone -b ccr-2c5184d8-u5e4pj https://github.com/RashestLynx/Diag-Tool.git
 
 ## Building the apps
 
-GitHub Actions builds the Android APK and Windows/macOS apps on every push
+GitHub Actions builds the Android APK and Windows/macOS/Linux apps on every push
 (see [`.github/workflows/build.yml`](.github/workflows/build.yml)) and uploads
 them as downloadable artifacts - open the run under the repo's **Actions** tab
 and grab the one you need. To build locally, see [`app/README.md`](app/README.md).

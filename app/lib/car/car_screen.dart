@@ -45,7 +45,8 @@ class _CarScreenState extends State<CarScreen> {
       r.device.platformName.isNotEmpty ? r.device.platformName : r.advertisementData.advName;
 
   bool get _supported =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
+      !kIsWeb &&
+      (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
   @override
   void dispose() {
