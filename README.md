@@ -38,19 +38,70 @@ fuller `scan` results on Windows/macOS.)
 > link gives "Not Found", check the repo's **Actions** tab - a billing lock on
 > the GitHub account stops every job before it starts.
 
-### Running on Linux
+### Using on Linux
 
-Download `diag-tool-linux.tar.gz`, then:
+Works on Ubuntu, Debian, Mint, Fedora, Arch and most other desktop distros
+(64-bit x86 PCs). There are two ways to use it - the command-line tool, or the
+app with a window.
+
+#### Command-line tool
+
+Needs Python 3.9+ (already installed on almost every distro) and `git`.
 
 ```
-mkdir diag-tool && tar -xzf diag-tool-linux.tar.gz -C diag-tool
+sudo apt install git python3        # Ubuntu/Debian/Mint
+sudo dnf install git python3        # Fedora
+sudo pacman -S git python           # Arch
+
+git clone https://github.com/RashestLynx/Diag-Tool.git
+cd Diag-Tool
+python3 diag_tool.py scan
+```
+
+Everything in [Commands](#commands) works the same - just type `python3`
+instead of `python`. On Linux, `scan` reads hardware info straight from `/sys`
+and `/proc`, so it doesn't need `psutil`. To update later, `cd Diag-Tool` and
+run `git pull`.
+
+For connected devices (`device_export.py`), install the tool for the device
+you're using:
+
+```
+sudo apt install adb                # Android phones (Fedora: android-tools)
+sudo apt install gphoto2            # cameras
+pip install --user pymobiledevice3  # iPhones
+pip install --user obd              # cars (ELM327 adapter)
+```
+
+A USB car adapter usually shows up as `/dev/ttyUSB0`. If you get "permission
+denied", add yourself to the serial group and log out and back in:
+`sudo usermod -aG dialout $USER` (on Arch the group is `uucp`).
+
+#### App
+
+```
+cd ~/Downloads
+wget https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz
+mkdir -p diag-tool && tar -xzf diag-tool-linux.tar.gz -C diag-tool
 ./diag-tool/diag_tool
 ```
 
-It needs GTK 3 (already on Ubuntu, Fedora, Mint and most desktops). The
-**Car** tab uses Bluetooth LE through BlueZ, so `bluetoothd` must be running.
-For the **Controller** tab, your user needs read access to `/dev/input`
-(on most distros, controllers plugged in while you're logged in just work).
+Keep the whole `diag-tool` folder together - the `diag_tool` program needs the
+`lib` and `data` folders next to it. You can move the folder anywhere (for
+example `~/Apps/diag-tool`).
+
+- **Needs GTK 3**, which is already on Ubuntu, Fedora, Mint and most desktops.
+  If it won't start, install it: `sudo apt install libgtk-3-0`.
+- **Car tab:** uses Bluetooth LE adapters through BlueZ, so Bluetooth must be
+  on (`sudo systemctl enable --now bluetooth`). Scan for the adapter inside the
+  app - don't pair it in system settings first.
+- **Controller tab:** plug the controller in by USB or connect it over
+  Bluetooth first. If it doesn't show up, your user needs access to
+  `/dev/input` - on most distros a controller plugged in while you're logged in
+  just works. Battery level and touchpad readout are only available on
+  iPhone/iPad and Mac.
+- **Doesn't open, or "permission denied"?** Make it runnable:
+  `chmod +x diag-tool/diag_tool`.
 
 ### Installing on iPhone with Sideloadly
 
