@@ -160,6 +160,8 @@ jobs:
       - run: flutter config --enable-linux-desktop
       - run: flutter pub get
       - run: flutter build linux --release
+      # Ship the app icon so install-linux.sh can add it to the app menu.
+      - run: cp assets/icon/icon.png build/linux/x64/release/bundle/data/icon.png
       - uses: actions/upload-artifact@v4
         with:
           name: diag-tool-linux

@@ -18,7 +18,25 @@ fuller `scan` results on Windows/macOS.)
 
 ## Download
 
-**Stable release — v1.0:**
+### Linux - quick install
+
+**One command** (installs for your user, adds Diag-Tool to your app menu, no sudo):
+
+```
+curl -fsSL https://raw.githubusercontent.com/RashestLynx/Diag-Tool/HEAD/install-linux.sh | bash
+```
+
+Run the same command again to update. To remove it:
+`curl -fsSL https://raw.githubusercontent.com/RashestLynx/Diag-Tool/HEAD/install-linux.sh | bash -s -- --uninstall`
+
+**Or download directly:**
+[**diag-tool-linux.tar.gz**](https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz)
+(64-bit x86, about 10 MB) - unpack it and run `./diag_tool`. See
+[Using on Linux](#using-on-linux) for details.
+
+### All platforms
+
+**Stable release — v1.0** (Linux arrives in the next release; use the latest build below):
 
 - **Android (.apk):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-android.apk
 - **Windows (.zip with .exe):** https://github.com/RashestLynx/Diag-Tool/releases/download/v1.0/diag-tool-windows.zip
@@ -78,6 +96,17 @@ denied", add yourself to the serial group and log out and back in:
 `sudo usermod -aG dialout $USER` (on Arch the group is `uucp`).
 
 #### App
+
+Quickest way - one command installs it and adds it to your app menu:
+
+```
+curl -fsSL https://raw.githubusercontent.com/RashestLynx/Diag-Tool/HEAD/install-linux.sh | bash
+```
+
+Then open **Diag-Tool** from your app menu, or type `diag-tool` in a terminal.
+
+Or install it by hand from the
+[direct download](https://github.com/RashestLynx/Diag-Tool/releases/download/latest/diag-tool-linux.tar.gz):
 
 ```
 cd ~/Downloads
